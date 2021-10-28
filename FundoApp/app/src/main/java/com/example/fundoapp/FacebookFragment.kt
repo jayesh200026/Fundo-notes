@@ -36,10 +36,7 @@ import com.google.firebase.ktx.Firebase
 import service.Authentication
 import service.Firebasedatabase
 import util.User
-import viewmodels.FacebookViewModel
-import viewmodels.FacebookViewModelFactory
-import viewmodels.SharedViewModel
-import viewmodels.SharedViewModelFactory
+import viewmodels.*
 import java.net.URL
 
 
@@ -48,7 +45,7 @@ class FacebookFragment : Fragment() {
     lateinit var callbackManager: CallbackManager
     private lateinit var auth: FirebaseAuth
     lateinit var sharedViewModel: SharedViewModel
-    lateinit var facebookViewModel: FacebookViewModel
+    lateinit var loginViewModel: LoginViewModel
     lateinit var progessBar: ProgressBar
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,18 +57,18 @@ class FacebookFragment : Fragment() {
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
 
-        facebookViewModel=ViewModelProvider(this,FacebookViewModelFactory())[FacebookViewModel::class.java]
+        loginViewModel=ViewModelProvider(this,LoginViewModelFactory())[LoginViewModel::class.java]
         var sharePref = requireActivity().getSharedPreferences("Mypref", Context.MODE_PRIVATE)
         var editor = sharePref.edit()
 
-        callbackManager = facebookViewModel.getCallBackManager()
-        auth = facebookViewModel.getAuth()
+        callbackManager = loginViewModel.getCallBackManager()
+        auth = loginViewModel.getAuth()
         progessBar = view.findViewById(R.id.progressBar)
-        facebookViewModel.loginWithReadPermision(this@FacebookFragment)
+        loginViewModel.loginWithReadPermision(this@FacebookFragment)
 
-        facebookViewModel.registerCallBack(callbackManager)
+        loginViewModel.registerCallBack(callbackManager)
 
-        facebookViewModel.callbackStatus.observe(viewLifecycleOwner) {
+        loginViewModel.callbackStatus.observe(viewLifecycleOwner) {
             if (!it.status) {
                 sharedViewModel.setGoToLoginPageStatus(true)
             } else {
@@ -90,9 +87,9 @@ class FacebookFragment : Fragment() {
     }
 
     private fun handleFacebookAccessToken(token: AccessToken) {
-        facebookViewModel.handleToken(token, auth)
+        loginViewModel.handleToken(token, auth)
 
-        facebookViewModel.facebookLoginStatus.observe(viewLifecycleOwner) {
+        loginViewModel.facebookLoginStatus.observe(viewLifecycleOwner) {
             if (it.status) {
                 updateUI(it.user)
             } else {

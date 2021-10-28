@@ -47,7 +47,7 @@ open class LoginFragment : Fragment(), View.OnClickListener {
 
         //(activity as AppCompatActivity?)!!.setSupportActionBar(view.findViewById(R.id.myToolbar))
 
-        //(requireActivity() as AppCompatActivity).supportActionBar?.show()
+        (requireActivity() as AppCompatActivity).supportActionBar?.hide()
 
         getValues(view)
         sharedViewModel = ViewModelProvider(

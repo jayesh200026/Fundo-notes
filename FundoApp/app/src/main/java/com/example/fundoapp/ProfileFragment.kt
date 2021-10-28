@@ -56,10 +56,10 @@ class ProfileFragment : Fragment() {
     ): View? {
 
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
-        //(requireActivity() as AppCompatActivity).supportActionBar?.show()
+        (requireActivity() as AppCompatActivity).supportActionBar?.show()
         var profilePhot:Uri?=null
 
-        userIcon = view.findViewById(R.id.userProfile)
+        userIcon = requireActivity().findViewById(R.id.userProfile)
 
 
 
@@ -74,6 +74,7 @@ class ProfileFragment : Fragment() {
         )[ProfileViewModel::class.java]
 
         getUserDetails()
+
         profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner){
            // profilePhot = it
 
@@ -92,15 +93,6 @@ class ProfileFragment : Fragment() {
 
         loadAvatar(userIcon)
         profileViewModel.fetchProfile()
-
-//        try {
-//            //sharedViewModel.fetchProfile()
-//            profileViewModel.fetchProfile()
-//        }
-//        catch (e:Exception){
-//            Toast.makeText(requireContext(),"Exception",Toast.LENGTH_LONG).show()
-//        }
-
 
         initialiseDialog()
 
@@ -237,27 +229,10 @@ class ProfileFragment : Fragment() {
 //        userIcon?.setImageResource(R.drawable.man)
     }
 
-    private fun observe(profilePhot:Uri?){
-//        profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner){
-//            profilePhot = it
-//            if(it!=null) {
-//                //Picasso.get().load(it).into(userIcon)
-//                //Picasso.get().load(it).into(dialog_profile)
-//            }
-//        }
-//
-//        profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner){
-//            if(it) {
-//                profileViewModel.fetchProfile()
-//            }
-//        }
 
-    }
 
 
     private fun getUserDetails() {
-//        val dailog_username = dialog.findViewById<TextView>(R.id.dailogueuserName)
-//        val dailog_email = dialog.findViewById<TextView>(R.id.dailogueEmail)
 
         profileViewModel.readUserFRomDatabase()
 
@@ -269,13 +244,7 @@ class ProfileFragment : Fragment() {
             dailog_email.text = email
             dailog_username.text = fullName
         }
-//
-//        if(profilePhot ==null){
-//            dialog_profile.setImageResource(R.drawable.man)
-//        }
-//        else{
-//            Picasso.get().load(profilePhot).into(dialog_profile)
-//        }
+
     }
 
 }

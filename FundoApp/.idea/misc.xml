@@ -21,6 +21,8 @@
         <entry key="app/src/main/res/layout/fragment_registration.xml" value="0.125" />
         <entry key="app/src/main/res/layout/fragment_reset_password.xml" value="0.165" />
         <entry key="app/src/main/res/layout/fragment_splash.xml" value="0.10157041540020263" />
+        <entry key="app/src/main/res/layout/navigation_header.xml" value="0.165" />
+        <entry key="app/src/main/res/menu/nav_menu.xml" value="0.165" />
       </map>
     </option>
   </component>

@@ -23,7 +23,7 @@ class SplashFragment : Fragment() {
             requireActivity(),
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
-        //(requireActivity() as AppCompatActivity).supportActionBar?.hide()
+        (requireActivity() as AppCompatActivity).supportActionBar?.hide()
 
         Handler().postDelayed(Runnable { /* Create an Intent that will start the Menu-Activity. */
             sharedViewModel.setGoToLoginPageStatus(true)

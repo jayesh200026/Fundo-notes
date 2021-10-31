@@ -11,26 +11,29 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <FrameLayout
             android:id="@+id/flFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintTop_toTopOf="parent">
-        </FrameLayout>
+            app:layout_constraintTop_toTopOf="parent"></FrameLayout>
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/myToolbar"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_margin="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
             android:background="@drawable/input_bg"
             android:backgroundTint="@color/black"
+
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            app:layout_constraintTop_toTopOf="parent">
 
-            >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -51,8 +54,8 @@
                     android:id="@+id/searchNotes"
                     android:layout_width="wrap_content"
                     android:layout_height="30dp"
-                    android:text="Search your notes"
                     android:gravity="center"
+                    android:text="Search your notes"
                     android:textColor="@color/white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -72,6 +75,17 @@
                     app:layout_constraintHorizontal_bias="0.895"
                     app:layout_constraintStart_toEndOf="@+id/searchNotes"
                     app:layout_constraintTop_toTopOf="parent"></ImageView>
+
+                <ImageView
+                    android:id="@+id/notesLayout"
+                    android:layout_width="32dp"
+                    android:layout_height="33dp"
+                    android:layout_marginEnd="28dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/userProfile"
+                    app:layout_constraintEnd_toStartOf="@+id/userProfile"
+                    app:layout_constraintTop_toTopOf="@+id/userProfile"
+                    app:layout_constraintVertical_bias="0.222"
+                    app:srcCompat="@drawable/ic_linear_24" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

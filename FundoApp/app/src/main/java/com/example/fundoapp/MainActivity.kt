@@ -64,9 +64,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             gotoSplashScreen()
         }
         //gotoLoginPage()
-        profileIcon.setOnClickListener {
-
-        }
 
     }
 
@@ -110,6 +107,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     gotoResetPasswordFragment()
                 }
             })
+        sharedViewModel.gotoAddNotePageStatus.observe(this@MainActivity,
+            {
+                if(it){
+                    gotoAddNotesPage()
+                }
+            })
 //        sharedViewModel.loginStatus.observe(this@MainActivity, {
 //            if (it.status) {
 //                Toast.makeText(
@@ -129,6 +132,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 //        }
 //        )
 
+    }
+
+    private fun gotoAddNotesPage() {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flFragment, AddNotesFragment())
+            addToBackStack(null)
+            commit()
+        }
     }
 
 
@@ -201,6 +212,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         else {
             super.onBackPressed()
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        supportFragmentManager.popBackStack()
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
 

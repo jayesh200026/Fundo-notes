@@ -10,22 +10,30 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.squareup.picasso.Picasso
 import service.Authentication
 import service.Firebasedatabase
+import util.Notes
 import util.SharedPref
+import util.TodoAdapter
+import util.TodoAdpaterLinear
 import viewmodels.ProfileViewModel
 import viewmodels.ProfileViewModelFactory
 import viewmodels.SharedViewModel
@@ -36,13 +44,21 @@ class ProfileFragment : Fragment() {
 
     lateinit var dialog: Dialog
     lateinit var userIcon: ImageView
+    lateinit var layout:ImageView
+    lateinit var searchBar:TextView
     lateinit var  dailog_logout:Button
     lateinit var dialog_profile:ImageView
     lateinit var dailog_edit:ImageView
     lateinit var dailog_username:TextView
     lateinit var dailog_email:TextView
+    lateinit var dialogClose:ImageView
     lateinit var getImage:ActivityResultLauncher<String>
+    lateinit var addNoteFAB:View
+    lateinit var adapter:TodoAdapter
+    lateinit var linearAdpater:TodoAdpaterLinear
+    lateinit var recyclerView:RecyclerView
 
+    var noteList= mutableListOf<Notes>()
 
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var profileViewModel:ProfileViewModel
@@ -57,10 +73,26 @@ class ProfileFragment : Fragment() {
 
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
         (requireActivity() as AppCompatActivity).supportActionBar?.show()
+
+        //(requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayShowHomeEnabled(true)
+
         var profilePhot:Uri?=null
 
         userIcon = requireActivity().findViewById(R.id.userProfile)
+        layout=requireActivity().findViewById(R.id.notesLayout)
+        searchBar=requireActivity().findViewById(R.id.searchNotes)
+        addNoteFAB=view.findViewById(R.id.floatingButton)
+        adapter= TodoAdapter(noteList)
+        linearAdpater=TodoAdpaterLinear(noteList)
 
+        recyclerView=view.findViewById(R.id.rvNotes)
+        recyclerView.adapter=adapter
+        recyclerView.layoutManager=LinearLayoutManager(requireContext())
+
+
+
+        toolbarHandling()
 
 
         sharedViewModel = ViewModelProvider(
@@ -73,46 +105,18 @@ class ProfileFragment : Fragment() {
             ProfileViewModelFactory()
         )[ProfileViewModel::class.java]
 
+        observe()
+
         getUserDetails()
 
-        profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner){
-           // profilePhot = it
-
-            if(it!=null) {
-                SharedPref.addString("uri",it.toString())
-                Picasso.get().load(it).into(userIcon)
-                Picasso.get().load(it).into(dialog_profile)
-            }
-        }
-
-        profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner){
-            if(it) {
-                profileViewModel.fetchProfile()
-            }
-        }
+        getUserNotes()
 
         loadAvatar(userIcon)
         profileViewModel.fetchProfile()
 
         initialiseDialog()
 
-//        dialog = Dialog(requireContext())
-//        dialog.setContentView(R.layout.custom_dailogue)
-//        dialog.window?.setBackgroundDrawable(
-//            getDrawable(
-//                requireContext(),
-//                R.drawable.custom_dialog_background
-//            )
-//        )
-//        dialog.window
-//            ?.setLayout(800, 700)
-//        dialog.setCancelable(true) //Optional
-//        dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
-
-//        val dailog_logout = dialog.findViewById<Button>(R.id.dailogueLogout)
-//        val dialog_profile = dialog.findViewById<ImageView>(R.id.dialogProfile)
-
-//        val dailog_edit=dialog.findViewById<ImageView>(R.id.editProfile)
+        checkLayout()
 
         getImage=registerForActivityResult(
             ActivityResultContracts.GetContent(),
@@ -124,43 +128,75 @@ class ProfileFragment : Fragment() {
             }
         )
 
-
-
-//        profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner){
-//            if(it) {
-//                profileViewModel.fetchProfile()
-//            }
-//        }
-
-
-//        profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner){
-//            profilePhot = it
-//            if(it!=null) {
-//                //Picasso.get().load(it).into(userIcon)
-//                //Picasso.get().load(it).into(dialog_profile)
-//            }
-//        }
-
-
         onClickListeners()
-//        userIcon.setOnClickListener {
-////            getUserDetails(profilePhot)
-//            dialog.show()
-//        }
-//
-//        dailog_edit.setOnClickListener {
-//            getImage.launch("image/*")
-//        }
-//
-//        dailog_logout.setOnClickListener {
-//            userIcon.setImageResource(R.drawable.man)
-//            dialog_profile.setImageResource(R.drawable.man)
-//            dialog.dismiss()
-//            sharedViewModel.logout()
-//            sharedViewModel.setGoToLoginPageStatus(true)
-//        }
+
         return view
     }
+
+    private fun getUserNotes() {
+        profileViewModel.readNotesFromDatabase()
+    }
+
+    private fun checkLayout() {
+        var count=SharedPref.get("counter")
+        if(count==""){
+            recyclerView.adapter=adapter
+        }
+        else if(count=="true"){
+            layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
+            recyclerView.adapter=linearAdpater
+        }
+        else if(count=="false"){
+            layout.setImageResource(R.drawable.ic_linear_24)
+            recyclerView.adapter=adapter
+        }
+    }
+
+    private fun toolbarHandling() {
+        userIcon.isVisible=true
+        layout.isVisible=true
+        searchBar.isVisible=true
+        val toggle= ActionBarDrawerToggle(requireActivity(),requireActivity().findViewById(R.id.drawerLayout),requireActivity().findViewById(R.id.myToolbar),R.string.open,R.string.close)
+        toggle.isDrawerIndicatorEnabled=true
+        toggle.syncState()
+    }
+
+
+    fun observe(){
+        profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner){
+            if(it) {
+                profileViewModel.fetchProfile()
+            }
+        }
+
+        profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner){
+            // profilePhot = it
+
+            if(it!=null) {
+                SharedPref.addString("uri",it.toString())
+                Picasso.get().load(it).into(userIcon)
+                Picasso.get().load(it).into(dialog_profile)
+            }
+        }
+
+        profileViewModel.databaseReadingStatus.observe(viewLifecycleOwner) {
+            email = it.email
+            fullName = it.fullName
+            SharedPref.addString("email",email!!)
+            SharedPref.addString("name",fullName!!)
+            dailog_email.text = email
+            dailog_username.text = fullName
+        }
+        profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner){
+            if(noteList.size==0) {
+                noteList.add(it)
+            }
+            if(SharedPref.get("counter")==""){
+                recyclerView.adapter=adapter
+            }
+        }
+    }
+
 
     private fun onClickListeners() {
         userIcon.setOnClickListener {
@@ -179,6 +215,51 @@ class ProfileFragment : Fragment() {
             sharedViewModel.logout()
             sharedViewModel.setGoToLoginPageStatus(true)
         }
+        dialogClose.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        layout.setOnClickListener {
+
+            loadNotesInLayoutType()
+        }
+
+        addNoteFAB.setOnClickListener {
+            sharedViewModel.setGotoAddNotesPage(true)
+        }
+    }
+
+    private fun loadNotesInLayoutType() {
+
+        var flag:Boolean
+        var count=SharedPref.get("counter")
+        if(count==""){
+            flag=true
+        }
+        else if(count=="true"){
+            flag=false
+        }
+        else{
+            flag=true
+        }
+
+        if(flag){
+            layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
+            Toast.makeText(requireContext(),"linear notes will be loaded ",Toast.LENGTH_SHORT).show()
+            recyclerView.adapter=linearAdpater
+            SharedPref.addString("counter","true")
+
+        }
+        else{
+            layout.setImageResource(R.drawable.ic_linear_24)
+            Toast.makeText(requireContext(),"grid notes will be loaded ",Toast.LENGTH_SHORT).show()
+            recyclerView.adapter=adapter
+            SharedPref.addString("counter","false")
+
+        }
+
+
+
     }
 
     private fun initialiseDialog() {
@@ -189,6 +270,7 @@ class ProfileFragment : Fragment() {
         dailog_edit=dialog.findViewById(R.id.editProfile)
         dailog_email=dialog.findViewById(R.id.dailogueEmail)
         dailog_username=dialog.findViewById(R.id.dailogueuserName)
+        dialogClose=dialog.findViewById(R.id.dialogClose)
         val sharePrefName=SharedPref.get("name")
         val sharePrefEmail=SharedPref.get("email")
         val sharePrefUriString=SharedPref.get("uri")
@@ -212,7 +294,7 @@ class ProfileFragment : Fragment() {
         )
         dialog.window
             ?.setLayout(800, 700)
-        dialog.setCancelable(true) //Optional
+        dialog.setCancelable(false) //Optional
         dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
     }
 
@@ -236,15 +318,26 @@ class ProfileFragment : Fragment() {
 
         profileViewModel.readUserFRomDatabase()
 
-        profileViewModel.databaseReadingStatus.observe(viewLifecycleOwner) {
-            email = it.email
-            fullName = it.fullName
-            SharedPref.addString("email",email!!)
-            SharedPref.addString("name",fullName!!)
-            dailog_email.text = email
-            dailog_username.text = fullName
-        }
+//        profileViewModel.databaseReadingStatus.observe(viewLifecycleOwner) {
+//            email = it.email
+//            fullName = it.fullName
+//            SharedPref.addString("email",email!!)
+//            SharedPref.addString("name",fullName!!)
+//            dailog_email.text = email
+//            dailog_username.text = fullName
+//        }
 
     }
+
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        when (item.itemId) {
+//            android.R.id.home -> {
+//                requireActivity().onBackPressed()
+//                return true
+//            }
+//        }
+//        return super.onOptionsItemSelected(item)
+//    }
+
 
 }

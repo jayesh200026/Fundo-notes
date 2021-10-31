@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import service.Authentication
 import service.FirebaseStorage
 import service.Firebasedatabase
+import util.Notes
 import util.User
 import java.lang.Exception
 
@@ -19,6 +20,9 @@ class ProfileViewModel:ViewModel(){
 
     private val _databaseReadingStatus = MutableLiveData<User>()
     val databaseReadingStatus = _databaseReadingStatus as LiveData<User>
+
+    private val _readNotesFromDatabaseStatus = MutableLiveData<Notes>()
+    var readNotesFromDatabaseStatus=_readNotesFromDatabaseStatus as LiveData<Notes>
 
     fun fetchProfile() {
         try {
@@ -38,6 +42,12 @@ class ProfileViewModel:ViewModel(){
     fun readUserFRomDatabase() {
         Firebasedatabase.readUser {
             _databaseReadingStatus.value = it
+        }
+    }
+
+    fun readNotesFromDatabase(){
+        Firebasedatabase.readNotes(){
+            _readNotesFromDatabaseStatus.value=it
         }
     }
 

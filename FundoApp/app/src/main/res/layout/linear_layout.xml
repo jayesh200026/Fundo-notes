@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="15dp"
+    android:layout_marginTop="2dp"
+    android:backgroundTint="@color/black"
+    android:background="@drawable/input_bg"
+    >
+
+    <TextView
+        android:id="@+id/linearNote"
+        android:layout_width="288dp"
+        android:layout_height="87dp"
+        android:layout_marginTop="23dp"
+        android:padding="10dp"
+        android:text="TextView"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.528"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearTitle" />
+
+    <TextView
+        android:id="@+id/linearTitle"
+        android:layout_width="298dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="28dp"
+        android:text="TextView"
+        android:textColor="@color/white"
+        android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="@+id/linearNote"
+        app:layout_constraintHorizontal_bias="0.486"
+        app:layout_constraintStart_toStartOf="@+id/linearNote"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

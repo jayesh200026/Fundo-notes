@@ -40,7 +40,8 @@ class SharedViewModel : ViewModel() {
     val databaseRegistrationStatus = _databaseRegistrationStatus as LiveData<Boolean>
 
 
-
+    private val _gotoAddNotePageStatus=MutableLiveData<Boolean>()
+    val gotoAddNotePageStatus=_gotoAddNotePageStatus as LiveData<Boolean>
 
 
 
@@ -85,6 +86,10 @@ class SharedViewModel : ViewModel() {
 
     fun getCurrentUid():String{
         return Authentication.getCurrentUid()
+    }
+
+    fun setGotoAddNotesPage(status: Boolean){
+        _gotoAddNotePageStatus.value=status
     }
 
 }

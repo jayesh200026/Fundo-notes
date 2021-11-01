@@ -1,9 +1,11 @@
 package service
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import util.Notes
+import util.SharedPref
 import util.User
 
 class Firebasedatabase {
@@ -42,8 +44,11 @@ class Firebasedatabase {
         }
 
         fun addNote(note:Notes,listner: (Boolean) -> Unit) {
+            val numberOfNotes=SharedPref.getNoteSize("noteSize")
+            val nextNote=numberOfNotes+1
             FirebaseDatabase.getInstance().getReference("notes")
                 .child(Authentication.getCurrentUid())
+                .child("note"+nextNote.toString())
                 .setValue(note)
                 .addOnCompleteListener {
                     if(it.isSuccessful){
@@ -55,17 +60,26 @@ class Firebasedatabase {
                 }
         }
 
-        fun readNotes(listner: (Notes) -> Unit) {
+        fun readNotes(listner: (Boolean,MutableList<Notes>) -> Unit) {
+            var list= mutableListOf<Notes>()
             val database = FirebaseDatabase.getInstance().getReference("notes")
 
             database.child(FirebaseAuth.getInstance().currentUser!!.uid)
                 .get()
                 .addOnSuccessListener {
                     if(it.exists()){
-                        val title=it.child("title").value
-                        val note=it.child("note").value
-                        val userNote=Notes(title.toString(),note.toString())
-                        listner(userNote)
+                       for(i in it.children){
+                           val title=i.child("title").value.toString()
+                           val note=i.child("note").value.toString()
+                           val userNote=Notes(title, note)
+                           list.add(userNote)
+                       }
+                        listner(true,list)
+//                        val title=it.child("title").value
+//                        val note=it.child("note").value
+//                        val userNote=Notes(title.toString(),note.toString())
+//                        listner(userNote)
+
                     }
                 }
 

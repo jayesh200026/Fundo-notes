@@ -23,6 +23,7 @@ import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -44,24 +45,25 @@ class ProfileFragment : Fragment() {
 
     lateinit var dialog: Dialog
     lateinit var userIcon: ImageView
-    lateinit var layout:ImageView
-    lateinit var searchBar:TextView
-    lateinit var  dailog_logout:Button
-    lateinit var dialog_profile:ImageView
-    lateinit var dailog_edit:ImageView
-    lateinit var dailog_username:TextView
-    lateinit var dailog_email:TextView
-    lateinit var dialogClose:ImageView
-    lateinit var getImage:ActivityResultLauncher<String>
-    lateinit var addNoteFAB:View
-    lateinit var adapter:TodoAdapter
-    lateinit var linearAdpater:TodoAdpaterLinear
-    lateinit var recyclerView:RecyclerView
+    lateinit var layout: ImageView
+    lateinit var searchBar: TextView
+    lateinit var dailog_logout: Button
+    lateinit var dialog_profile: ImageView
+    lateinit var dailog_edit: ImageView
+    lateinit var dailog_username: TextView
+    lateinit var dailog_email: TextView
+    lateinit var dialogClose: ImageView
+    lateinit var getImage: ActivityResultLauncher<String>
+    lateinit var addNoteFAB: View
+    lateinit var adapter: TodoAdapter
+    lateinit var linearAdpater: TodoAdpaterLinear
 
-    var noteList= mutableListOf<Notes>()
+    //lateinit var recyclerView:RecyclerView
+    lateinit var gridrecyclerView: RecyclerView
+    var noteList = mutableListOf<Notes>()
 
     private lateinit var sharedViewModel: SharedViewModel
-    private lateinit var profileViewModel:ProfileViewModel
+    private lateinit var profileViewModel: ProfileViewModel
     var email: String? = null
     var fullName: String? = null
 
@@ -77,20 +79,21 @@ class ProfileFragment : Fragment() {
         //(requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
 //        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayShowHomeEnabled(true)
 
-        var profilePhot:Uri?=null
+        var profilePhot: Uri? = null
 
         userIcon = requireActivity().findViewById(R.id.userProfile)
-        layout=requireActivity().findViewById(R.id.notesLayout)
-        searchBar=requireActivity().findViewById(R.id.searchNotes)
-        addNoteFAB=view.findViewById(R.id.floatingButton)
-        adapter= TodoAdapter(noteList)
-        linearAdpater=TodoAdpaterLinear(noteList)
+        layout = requireActivity().findViewById(R.id.notesLayout)
+        searchBar = requireActivity().findViewById(R.id.searchNotes)
+        addNoteFAB = view.findViewById(R.id.floatingButton)
+        adapter = TodoAdapter(noteList)
+        linearAdpater = TodoAdpaterLinear(noteList)
 
-        recyclerView=view.findViewById(R.id.rvNotes)
-        recyclerView.adapter=adapter
-        recyclerView.layoutManager=LinearLayoutManager(requireContext())
-
-
+        //recyclerView=view.findViewById(R.id.rvNotes)
+        gridrecyclerView = view.findViewById(R.id.rvNotes)
+        //recyclerView.adapter=adapter
+        //recyclerView.layoutManager=LinearLayoutManager(requireContext())
+        gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        //gridrecyclerView.adapter=adapter
 
         toolbarHandling()
 
@@ -108,23 +111,25 @@ class ProfileFragment : Fragment() {
         observe()
 
         getUserDetails()
-
         getUserNotes()
 
+
         loadAvatar(userIcon)
-        profileViewModel.fetchProfile()
+        if (SharedPref.get("uri") == "") {
+            profileViewModel.fetchProfile()
+        }
 
         initialiseDialog()
 
         checkLayout()
 
-        getImage=registerForActivityResult(
+        getImage = registerForActivityResult(
             ActivityResultContracts.GetContent(),
             ActivityResultCallback {
                 dialog_profile.setImageURI(it)
                 userIcon.setImageURI(it)
-                val uid=sharedViewModel.getCurrentUid()
-                profileViewModel.uploadProfile(uid,it)
+                val uid = sharedViewModel.getCurrentUid()
+                profileViewModel.uploadProfile(uid, it)
             }
         )
 
@@ -138,42 +143,56 @@ class ProfileFragment : Fragment() {
     }
 
     private fun checkLayout() {
-        var count=SharedPref.get("counter")
-        if(count==""){
-            recyclerView.adapter=adapter
-        }
-        else if(count=="true"){
+        var count = SharedPref.get("counter")
+        if (count == "") {
+            // recyclerView.isVisible=false
+            //recyclerView.adapter=adapter
+            gridrecyclerView.adapter = adapter
+            gridrecyclerView.isVisible = true
+
+        } else if (count == "true") {
             layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
-            recyclerView.adapter=linearAdpater
-        }
-        else if(count=="false"){
+            gridrecyclerView.isVisible = false
+            //recyclerView.adapter=linearAdpater
+            //recyclerView.isVisible=true
+
+        } else if (count == "false") {
             layout.setImageResource(R.drawable.ic_linear_24)
-            recyclerView.adapter=adapter
+            // recyclerView.isVisible=false
+            // recyclerView.adapter=adapter
+            gridrecyclerView.adapter = adapter
+            gridrecyclerView.isVisible = true
         }
     }
 
     private fun toolbarHandling() {
-        userIcon.isVisible=true
-        layout.isVisible=true
-        searchBar.isVisible=true
-        val toggle= ActionBarDrawerToggle(requireActivity(),requireActivity().findViewById(R.id.drawerLayout),requireActivity().findViewById(R.id.myToolbar),R.string.open,R.string.close)
-        toggle.isDrawerIndicatorEnabled=true
+        userIcon.isVisible = true
+        layout.isVisible = true
+        searchBar.isVisible = true
+        val toggle = ActionBarDrawerToggle(
+            requireActivity(),
+            requireActivity().findViewById(R.id.drawerLayout),
+            requireActivity().findViewById(R.id.myToolbar),
+            R.string.open,
+            R.string.close
+        )
+        toggle.isDrawerIndicatorEnabled = true
         toggle.syncState()
     }
 
 
-    fun observe(){
-        profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner){
-            if(it) {
+    fun observe() {
+        profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner) {
+            if (it) {
                 profileViewModel.fetchProfile()
             }
         }
 
-        profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner){
+        profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner) {
             // profilePhot = it
 
-            if(it!=null) {
-                SharedPref.addString("uri",it.toString())
+            if (it != null) {
+                SharedPref.addString("uri", it.toString())
                 Picasso.get().load(it).into(userIcon)
                 Picasso.get().load(it).into(dialog_profile)
             }
@@ -182,19 +201,43 @@ class ProfileFragment : Fragment() {
         profileViewModel.databaseReadingStatus.observe(viewLifecycleOwner) {
             email = it.email
             fullName = it.fullName
-            SharedPref.addString("email",email!!)
-            SharedPref.addString("name",fullName!!)
+            SharedPref.addString("email", email!!)
+            SharedPref.addString("name", fullName!!)
             dailog_email.text = email
             dailog_username.text = fullName
         }
-        profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner){
-            if(noteList.size==0) {
-                noteList.add(it)
+        profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
+            noteList.clear()
+//            gridrecyclerView.adapter=adapter
+            //recyclerView.adapter=linearAdpater
+            gridrecyclerView.isVisible = false
+            //recyclerView.isVisible=false
+            for (i in 0..it.size - 1) {
+                noteList.add(it[i])
             }
-            if(SharedPref.get("counter")==""){
-                recyclerView.adapter=adapter
+            SharedPref.addNoteSize("noteSize", noteList.size)
+
+            if (SharedPref.get("counter") == "") {
+                //recyclerView.isVisible=false
+                gridrecyclerView.adapter = adapter
+                adapter.notifyItemInserted(noteList.size - 1)
+                gridrecyclerView.isVisible = true
+            } else if (SharedPref.get("counter") == "true") {
+                gridrecyclerView.isVisible = false
+                //recyclerView.adapter=linearAdpater
+                //recyclerView.isVisible=true
+                linearAdpater.notifyItemInserted(noteList.size - 1)
+                //recyclerView.isVisible=true
+            } else if (SharedPref.get("counter") == "false") {
+                //recyclerView.isVisible=false
+                gridrecyclerView.adapter = adapter
+                adapter.notifyItemInserted(noteList.size - 1)
+                gridrecyclerView.isVisible = true
             }
+            Log.d("reading notes", "Size of note  list is" + noteList.size)
+
         }
+
     }
 
 
@@ -231,33 +274,41 @@ class ProfileFragment : Fragment() {
 
     private fun loadNotesInLayoutType() {
 
-        var flag:Boolean
-        var count=SharedPref.get("counter")
-        if(count==""){
-            flag=true
-        }
-        else if(count=="true"){
-            flag=false
-        }
-        else{
-            flag=true
+        var flag: Boolean
+        var count = SharedPref.get("counter")
+        if (count == "") {
+            flag = true
+        } else if (count == "true") {
+            flag = false
+        } else {
+            flag = true
         }
 
-        if(flag){
+        if (flag) {
             layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
-            Toast.makeText(requireContext(),"linear notes will be loaded ",Toast.LENGTH_SHORT).show()
-            recyclerView.adapter=linearAdpater
-            SharedPref.addString("counter","true")
+            Toast.makeText(requireContext(), "linear notes will be loaded ", Toast.LENGTH_SHORT)
+                .show()
+            gridrecyclerView.isVisible = false
+            gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
+            gridrecyclerView.adapter = linearAdpater
+            gridrecyclerView.isVisible = true
+            //recyclerView.adapter=linearAdpater
+            //recyclerView.isVisible=true
+            SharedPref.addString("counter", "true")
 
-        }
-        else{
+        } else {
             layout.setImageResource(R.drawable.ic_linear_24)
-            Toast.makeText(requireContext(),"grid notes will be loaded ",Toast.LENGTH_SHORT).show()
-            recyclerView.adapter=adapter
-            SharedPref.addString("counter","false")
+            Toast.makeText(requireContext(), "grid notes will be loaded ", Toast.LENGTH_SHORT)
+                .show()
+            //recyclerView.adapter=adapter
+            //recyclerView.isVisible=false
+            gridrecyclerView.isVisible = false
+            gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+            gridrecyclerView.adapter = adapter
+            gridrecyclerView.isVisible = true
+            SharedPref.addString("counter", "false")
 
         }
-
 
 
     }
@@ -267,21 +318,20 @@ class ProfileFragment : Fragment() {
         dialog.setContentView(R.layout.custom_dailogue)
         dailog_logout = dialog.findViewById(R.id.dailogueLogout)
         dialog_profile = dialog.findViewById(R.id.dialogProfile)
-        dailog_edit=dialog.findViewById(R.id.editProfile)
-        dailog_email=dialog.findViewById(R.id.dailogueEmail)
-        dailog_username=dialog.findViewById(R.id.dailogueuserName)
-        dialogClose=dialog.findViewById(R.id.dialogClose)
-        val sharePrefName=SharedPref.get("name")
-        val sharePrefEmail=SharedPref.get("email")
-        val sharePrefUriString=SharedPref.get("uri")
-        val photoUri=sharePrefUriString?.toUri()
+        dailog_edit = dialog.findViewById(R.id.editProfile)
+        dailog_email = dialog.findViewById(R.id.dailogueEmail)
+        dailog_username = dialog.findViewById(R.id.dailogueuserName)
+        dialogClose = dialog.findViewById(R.id.dialogClose)
+        val sharePrefName = SharedPref.get("name")
+        val sharePrefEmail = SharedPref.get("email")
+        val sharePrefUriString = SharedPref.get("uri")
+        val photoUri = sharePrefUriString?.toUri()
 
-        dailog_username.text=sharePrefName
-        dailog_email.text=sharePrefEmail
-        if(sharePrefUriString ==""){
+        dailog_username.text = sharePrefName
+        dailog_email.text = sharePrefEmail
+        if (sharePrefUriString == "") {
             dialog_profile.setImageResource(R.drawable.man)
-        }
-        else {
+        } else {
             Picasso.get().load(photoUri).into(dialog_profile)
         }
 
@@ -300,44 +350,22 @@ class ProfileFragment : Fragment() {
 
 
     private fun loadAvatar(userIcon: ImageView?) {
-        val sharePrefUriString=SharedPref.get("uri")
-        val photoUri=sharePrefUriString?.toUri()
-        if(sharePrefUriString == ""){
+        val sharePrefUriString = SharedPref.get("uri")
+        val photoUri = sharePrefUriString?.toUri()
+        if (sharePrefUriString == "") {
             userIcon?.setImageResource(R.drawable.man)
-        }
-        else{
+        } else {
             Picasso.get().load(photoUri).into(userIcon)
         }
 //        userIcon?.setImageResource(R.drawable.man)
     }
 
-
-
-
     private fun getUserDetails() {
 
         profileViewModel.readUserFRomDatabase()
 
-//        profileViewModel.databaseReadingStatus.observe(viewLifecycleOwner) {
-//            email = it.email
-//            fullName = it.fullName
-//            SharedPref.addString("email",email!!)
-//            SharedPref.addString("name",fullName!!)
-//            dailog_email.text = email
-//            dailog_username.text = fullName
-//        }
 
     }
-
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        when (item.itemId) {
-//            android.R.id.home -> {
-//                requireActivity().onBackPressed()
-//                return true
-//            }
-//        }
-//        return super.onOptionsItemSelected(item)
-//    }
 
 
 }

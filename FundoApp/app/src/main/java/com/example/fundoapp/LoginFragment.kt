@@ -13,12 +13,9 @@ import com.google.firebase.auth.FirebaseAuth
 import service.Authentication
 
 import util.Utillity
-import viewmodels.LoginViewModel
-import viewmodels.LoginViewModelFactory
-import viewmodels.SharedViewModel
-import viewmodels.SharedViewModelFactory
 import androidx.appcompat.app.AppCompatActivity
 import util.SharedPref
+import viewmodels.*
 
 
 open class LoginFragment : Fragment(), View.OnClickListener {
@@ -54,6 +51,8 @@ open class LoginFragment : Fragment(), View.OnClickListener {
             requireActivity(),
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
+
+
 
         loginViewModel=ViewModelProvider(this,LoginViewModelFactory())[LoginViewModel::class.java]
 

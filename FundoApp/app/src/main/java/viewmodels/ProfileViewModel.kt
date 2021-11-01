@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.firebase.database.DataSnapshot
 import service.Authentication
 import service.FirebaseStorage
 import service.Firebasedatabase
@@ -21,8 +22,8 @@ class ProfileViewModel:ViewModel(){
     private val _databaseReadingStatus = MutableLiveData<User>()
     val databaseReadingStatus = _databaseReadingStatus as LiveData<User>
 
-    private val _readNotesFromDatabaseStatus = MutableLiveData<Notes>()
-    var readNotesFromDatabaseStatus=_readNotesFromDatabaseStatus as LiveData<Notes>
+    private val _readNotesFromDatabaseStatus = MutableLiveData<MutableList<Notes>>()
+    var readNotesFromDatabaseStatus=_readNotesFromDatabaseStatus as LiveData<MutableList<Notes>>
 
     fun fetchProfile() {
         try {
@@ -46,8 +47,10 @@ class ProfileViewModel:ViewModel(){
     }
 
     fun readNotesFromDatabase(){
-        Firebasedatabase.readNotes(){
-            _readNotesFromDatabaseStatus.value=it
+        Firebasedatabase.readNotes(){status,list->
+            if(status) {
+                _readNotesFromDatabaseStatus.value = list
+            }
         }
     }
 

@@ -13,10 +13,11 @@
     <TextView
         android:id="@+id/linearNote"
         android:layout_width="288dp"
-        android:layout_height="87dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="23dp"
         android:padding="10dp"
         android:text="TextView"
+        android:textSize="15sp"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.528"
@@ -26,13 +27,15 @@
     <TextView
         android:id="@+id/linearTitle"
         android:layout_width="298dp"
-        android:layout_height="39dp"
-        android:layout_marginTop="28dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:padding="10dp"
         android:text="TextView"
         android:textColor="@color/white"
-        android:padding="10dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/linearNote"
-        app:layout_constraintHorizontal_bias="0.486"
+        app:layout_constraintHorizontal_bias="0.8"
         app:layout_constraintStart_toStartOf="@+id/linearNote"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -48,7 +48,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         )[SharedViewModel::class.java]
 
         addNoteViewModel=ViewModelProvider(
-            requireActivity(),
+            this,
             AddNoteViewModelFactory()
         )[AddNoteViewModel::class.java]
 

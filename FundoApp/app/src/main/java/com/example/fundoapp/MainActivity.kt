@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun gotoResetPasswordFragment() {
         supportFragmentManager.beginTransaction().apply {
             replace(R.id.flFragment, ResetPasswordFragment())
+            addToBackStack(null)
             commit()
         }
     }

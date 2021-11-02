@@ -23,6 +23,22 @@ object SharedPref {
         editor.apply()
     }
 
+    fun setUpdateStatus(key:String,value:Boolean){
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(key,value)
+        editor.apply()
+    }
+
+    fun updateNotePosition(key: String, value: Int){
+        val editor = sharedPreferences.edit()
+        editor.putInt(key, value)
+        editor.apply()
+    }
+
+    fun getUpdateNotePosition(key: String):Int= sharedPreferences.getInt(key,0)
+
+    fun getUpdateStatus(key: String):Boolean= sharedPreferences.getBoolean(key,false)
+
     fun getNoteSize(key: String): Int = sharedPreferences.getInt(key, 0)
 
     fun get(key: String): String? = sharedPreferences.getString(key, "")

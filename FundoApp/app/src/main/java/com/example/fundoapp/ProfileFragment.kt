@@ -20,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
+import androidx.appcompat.widget.SearchView
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -39,6 +40,7 @@ import viewmodels.ProfileViewModel
 import viewmodels.ProfileViewModelFactory
 import viewmodels.SharedViewModel
 import viewmodels.SharedViewModelFactory
+import java.util.*
 
 
 class ProfileFragment : Fragment() {
@@ -47,6 +49,7 @@ class ProfileFragment : Fragment() {
     lateinit var userIcon: ImageView
     lateinit var layout: ImageView
     lateinit var searchBar: TextView
+    lateinit var searchview:SearchView
     lateinit var dailog_logout: Button
     lateinit var dialog_profile: ImageView
     lateinit var dailog_edit: ImageView
@@ -62,6 +65,9 @@ class ProfileFragment : Fragment() {
     lateinit var gridrecyclerView: RecyclerView
     var noteList = mutableListOf<Notes>()
 
+    var tempList = mutableListOf<Notes>()
+
+
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var profileViewModel: ProfileViewModel
     var email: String? = null
@@ -76,17 +82,17 @@ class ProfileFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
         (requireActivity() as AppCompatActivity).supportActionBar?.show()
 
-        //(requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayShowHomeEnabled(true)
-
         var profilePhot: Uri? = null
 
         userIcon = requireActivity().findViewById(R.id.userProfile)
         layout = requireActivity().findViewById(R.id.notesLayout)
         searchBar = requireActivity().findViewById(R.id.searchNotes)
+        searchview=requireActivity().findViewById(R.id.searchView)
         addNoteFAB = view.findViewById(R.id.floatingButton)
-        adapter = TodoAdapter(noteList)
-        linearAdpater = TodoAdpaterLinear(noteList)
+//        adapter = TodoAdapter(noteList)
+//        linearAdpater = TodoAdpaterLinear(noteList)
+        adapter = TodoAdapter(tempList)
+        linearAdpater = TodoAdpaterLinear(tempList)
 
         //recyclerView=view.findViewById(R.id.rvNotes)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
@@ -94,6 +100,27 @@ class ProfileFragment : Fragment() {
         //recyclerView.layoutManager=LinearLayoutManager(requireContext())
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         //gridrecyclerView.adapter=adapter
+
+        adapter.setOnItemClickListner(object :TodoAdapter.onItemClickListner{
+            override fun onItemClick(position: Int) {
+
+                setValuesForUpdation(position)
+                Toast.makeText(requireContext(),"You clicked item ${position+1}",Toast.LENGTH_SHORT).show()
+                sharedViewModel.setGotoAddNotesPage(true)
+            }
+
+        })
+
+        linearAdpater.setOnItemClickListner(object :TodoAdpaterLinear.onItemClickListner{
+            override fun onItemClick(position: Int) {
+                setValuesForUpdation(position)
+                Toast.makeText(requireContext(),"You clicked item ${position+1}",Toast.LENGTH_SHORT).show()
+                sharedViewModel.setGotoAddNotesPage(true)
+            }
+
+        })
+
+
 
         toolbarHandling()
 
@@ -138,6 +165,13 @@ class ProfileFragment : Fragment() {
         return view
     }
 
+    private fun setValuesForUpdation(position: Int) {
+        SharedPref.setUpdateStatus("updateStatus",true)
+        SharedPref.updateNotePosition("position",position+1)
+        SharedPref.addString("title",noteList[position].title)
+        SharedPref.addString("note",noteList[position].note)
+    }
+
     private fun getUserNotes() {
         profileViewModel.readNotesFromDatabase()
     }
@@ -147,17 +181,21 @@ class ProfileFragment : Fragment() {
         if (count == "") {
             // recyclerView.isVisible=false
             //recyclerView.adapter=adapter
+            gridrecyclerView.isVisible = false
             gridrecyclerView.adapter = adapter
             gridrecyclerView.isVisible = true
 
         } else if (count == "true") {
             layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
             gridrecyclerView.isVisible = false
-            //recyclerView.adapter=linearAdpater
-            //recyclerView.isVisible=true
+            gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
+            gridrecyclerView.adapter = linearAdpater
+            gridrecyclerView.isVisible = true
 
         } else if (count == "false") {
             layout.setImageResource(R.drawable.ic_linear_24)
+            gridrecyclerView.isVisible = false
+            gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
             // recyclerView.isVisible=false
             // recyclerView.adapter=adapter
             gridrecyclerView.adapter = adapter
@@ -169,6 +207,7 @@ class ProfileFragment : Fragment() {
         userIcon.isVisible = true
         layout.isVisible = true
         searchBar.isVisible = true
+        searchview.isVisible=true
         val toggle = ActionBarDrawerToggle(
             requireActivity(),
             requireActivity().findViewById(R.id.drawerLayout),
@@ -208,13 +247,11 @@ class ProfileFragment : Fragment() {
         }
         profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
             noteList.clear()
-//            gridrecyclerView.adapter=adapter
-            //recyclerView.adapter=linearAdpater
             gridrecyclerView.isVisible = false
-            //recyclerView.isVisible=false
             for (i in 0..it.size - 1) {
                 noteList.add(it[i])
             }
+            tempList.addAll(noteList)
             SharedPref.addNoteSize("noteSize", noteList.size)
 
             if (SharedPref.get("counter") == "") {
@@ -224,14 +261,15 @@ class ProfileFragment : Fragment() {
                 gridrecyclerView.isVisible = true
             } else if (SharedPref.get("counter") == "true") {
                 gridrecyclerView.isVisible = false
-                //recyclerView.adapter=linearAdpater
-                //recyclerView.isVisible=true
+                gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
                 linearAdpater.notifyItemInserted(noteList.size - 1)
-                //recyclerView.isVisible=true
+                gridrecyclerView.adapter = linearAdpater
+                gridrecyclerView.isVisible = true
             } else if (SharedPref.get("counter") == "false") {
-                //recyclerView.isVisible=false
-                gridrecyclerView.adapter = adapter
+                gridrecyclerView.isVisible = false
+                gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
                 adapter.notifyItemInserted(noteList.size - 1)
+                gridrecyclerView.adapter = adapter
                 gridrecyclerView.isVisible = true
             }
             Log.d("reading notes", "Size of note  list is" + noteList.size)
@@ -270,6 +308,43 @@ class ProfileFragment : Fragment() {
         addNoteFAB.setOnClickListener {
             sharedViewModel.setGotoAddNotesPage(true)
         }
+        searchview.setOnClickListener {
+            searchNote()
+        }
+    }
+
+    private fun searchNote() {
+
+        searchview.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Log.d("searching","searching for note "+newText)
+
+                tempList.clear()
+
+                val searchTxt=newText!!.toLowerCase(Locale.getDefault())
+                if(searchTxt.isNotEmpty()){
+                    noteList.forEach {
+                        if(it.title.toLowerCase(Locale.getDefault()).contains(searchTxt)){
+                            tempList.add(it)
+                        }
+                    }
+                    gridrecyclerView.adapter!!.notifyDataSetChanged()
+                }
+                else{
+                    tempList.clear()
+                    tempList.addAll(noteList)
+                    gridrecyclerView.adapter!!.notifyDataSetChanged()
+
+                }
+
+                return false
+            }
+
+        })
     }
 
     private fun loadNotesInLayoutType() {

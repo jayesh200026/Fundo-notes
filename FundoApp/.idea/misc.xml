@@ -11,12 +11,13 @@
         <entry key="app/src/main/res/drawable/input_bg.xml" value="0.1265625" />
         <entry key="app/src/main/res/drawable/rounded_btn.xml" value="0.1675925925925926" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.165" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.24691358024691357" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.24079320113314448" />
         <entry key="app/src/main/res/layout/activity_profile.xml" value="0.125" />
         <entry key="app/src/main/res/layout/activity_registration.xml" value="0.165" />
         <entry key="app/src/main/res/layout/custom_dailogue.xml" value="0.335" />
         <entry key="app/src/main/res/layout/fragment_add_notes.xml" value="0.24691358024691357" />
         <entry key="app/src/main/res/layout/fragment_dashboard.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_delete_note.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_facebook.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_google.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_login.xml" value="0.165" />

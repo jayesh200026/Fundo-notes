@@ -10,11 +10,28 @@ import com.example.fundoapp.R
 class TodoAdpaterLinear(
     var todos:List<Notes>
 ): RecyclerView.Adapter<TodoAdpaterLinear.TodoViewHolderLinear>() {
-   inner class TodoViewHolderLinear(itemview:View):RecyclerView.ViewHolder(itemview)
+   inner class TodoViewHolderLinear(itemview:View,listener:onItemClickListner):RecyclerView.ViewHolder(itemview){
+       init {
+           itemview.setOnClickListener {
+               listener.onItemClick(adapterPosition)
+           }
+       }
+   }
+
+    private lateinit var mListner:onItemClickListner
+
+    interface onItemClickListner{
+        fun onItemClick(position:Int)
+    }
+
+    fun setOnItemClickListner(listener:onItemClickListner){
+        mListner=listener
+
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolderLinear {
         val view=LayoutInflater.from(parent.context).inflate(R.layout.linear_layout,parent,false)
-        return TodoViewHolderLinear(view)
+        return TodoViewHolderLinear(view,mListner)
     }
 
     override fun onBindViewHolder(holder: TodoAdpaterLinear.TodoViewHolderLinear, position: Int) {

@@ -86,6 +86,24 @@ class Firebasedatabase {
 
         }
 
+        fun updateNote(note: Notes, listner: (Boolean) -> Unit) {
+            val notePosition = SharedPref.getUpdateNotePosition("position")
+            FirebaseDatabase.getInstance().getReference("notes")
+                .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                .child("note"+notePosition.toString())
+                .setValue(note)
+                .addOnCompleteListener{
+                    if(it.isSuccessful){
+                        listner(true)
+                    }
+                    else{
+                        listner(false)
+                    }
+                }
+
+
+        }
+
 
     }
 }

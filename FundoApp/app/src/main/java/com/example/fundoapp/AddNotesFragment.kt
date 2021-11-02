@@ -6,16 +6,14 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import util.Notes
+import util.SharedPref
 import viewmodels.AddNoteViewModel
 import viewmodels.AddNoteViewModelFactory
 import viewmodels.SharedViewModel
@@ -28,6 +26,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
     lateinit var userIcon: ImageView
     lateinit var gridorLinear:ImageView
     lateinit var searchBar:TextView
+    lateinit var searchview: SearchView
     lateinit var title:EditText
     lateinit var note:EditText
     lateinit var savetext:TextView
@@ -57,6 +56,8 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         userIcon = requireActivity().findViewById(R.id.userProfile)
         gridorLinear=requireActivity().findViewById(R.id.notesLayout)
         searchBar=requireActivity().findViewById(R.id.searchNotes)
+        searchview=requireActivity().findViewById(R.id.searchView)
+
         title=view.findViewById(R.id.noteTitle)
         note=view.findViewById(R.id.userNote)
         saveBtn=view.findViewById(R.id.saveFAB)
@@ -64,6 +65,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         userIcon.isVisible=false
         gridorLinear.isVisible=false
         searchBar.isVisible=false
+        searchview.isVisible=false
         toolbar=requireActivity().findViewById(R.id.myToolbar)
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
@@ -71,9 +73,22 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         }
         saveBtn.setOnClickListener(this)
         savetext.setOnClickListener(this)
-//        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayShowHomeEnabled(true)
+
+        val updateStatus=SharedPref.getUpdateStatus("updateStatus")
+        if(updateStatus){
+            updateNote()
+        }
+
         return view
+    }
+
+    private fun updateNote() {
+        val noteTitle=SharedPref.get("title")
+        val noteContent=SharedPref.get("note")
+        title.setText(noteTitle)
+        note.setText(noteContent)
+
+
     }
 
     private fun observe() {
@@ -85,15 +100,40 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
             Toast.makeText(requireContext(),"database storing failed",Toast.LENGTH_SHORT).show()
         }
     }
+
+        addNoteViewModel.databaseNoteUpdateStatus.observe(viewLifecycleOwner){
+            SharedPref.setUpdateStatus("updateStatus",false)
+            if(it){
+                    sharedViewModel.setGotoHomePageStatus(true)
+                }
+            else{
+                Toast.makeText(requireContext(),"updation failed",Toast.LENGTH_SHORT).show()
+
+            }
+
+        }
     }
 
 
     override fun onClick(view: View?) {
         when(view?.id){
             R.id.saveText,R.id.saveFAB->{
-                storeToDatabase()
+                if(SharedPref.getUpdateStatus("updateStatus")){
+                    updateNoteToDatabase()
+                }
+                else {
+                    storeToDatabase()
+                }
             }
         }
+    }
+
+    private fun updateNoteToDatabase() {
+        val titleText=title.text.toString()
+        val noteText=note.text.toString()
+
+        val note=Notes(titleText,noteText)
+        addNoteViewModel.updateNoteIndatabse(note)
     }
 
     private fun storeToDatabase() {
@@ -104,16 +144,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         addNoteViewModel.addNotesToDatabase(note)
 
     }
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        when (item.itemId) {
-//            android.R.id.home -> {
-//                requireActivity().onBackPressed()
-//                return true
-//            }
-//        }
-//        return super.onOptionsItemSelected(item)
-//    }
-
 
 
 

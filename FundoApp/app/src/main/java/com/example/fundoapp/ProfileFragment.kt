@@ -50,6 +50,7 @@ class ProfileFragment : Fragment() {
     lateinit var layout: ImageView
     lateinit var searchBar: TextView
     lateinit var searchview:SearchView
+    lateinit var deleteBtn:ImageView
     lateinit var dailog_logout: Button
     lateinit var dialog_profile: ImageView
     lateinit var dailog_edit: ImageView
@@ -88,6 +89,7 @@ class ProfileFragment : Fragment() {
         layout = requireActivity().findViewById(R.id.notesLayout)
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview=requireActivity().findViewById(R.id.searchView)
+        deleteBtn=requireActivity().findViewById(R.id.deleteButton)
         addNoteFAB = view.findViewById(R.id.floatingButton)
 //        adapter = TodoAdapter(noteList)
 //        linearAdpater = TodoAdpaterLinear(noteList)
@@ -162,6 +164,37 @@ class ProfileFragment : Fragment() {
 
         onClickListeners()
 
+        searchview.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Log.d("searching","searching for note "+newText)
+
+                tempList.clear()
+
+                val searchTxt=newText!!.toLowerCase(Locale.getDefault())
+                if(searchTxt.isNotEmpty()){
+                    noteList.forEach {
+                        if(it.title.toLowerCase(Locale.getDefault()).contains(searchTxt)){
+                            tempList.add(it)
+                        }
+                    }
+                    gridrecyclerView.adapter!!.notifyDataSetChanged()
+                }
+                else{
+                    tempList.clear()
+                    tempList.addAll(noteList)
+                    gridrecyclerView.adapter!!.notifyDataSetChanged()
+
+                }
+
+                return false
+            }
+
+        })
+
         return view
     }
 
@@ -179,8 +212,6 @@ class ProfileFragment : Fragment() {
     private fun checkLayout() {
         var count = SharedPref.get("counter")
         if (count == "") {
-            // recyclerView.isVisible=false
-            //recyclerView.adapter=adapter
             gridrecyclerView.isVisible = false
             gridrecyclerView.adapter = adapter
             gridrecyclerView.isVisible = true
@@ -196,8 +227,6 @@ class ProfileFragment : Fragment() {
             layout.setImageResource(R.drawable.ic_linear_24)
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-            // recyclerView.isVisible=false
-            // recyclerView.adapter=adapter
             gridrecyclerView.adapter = adapter
             gridrecyclerView.isVisible = true
         }
@@ -208,6 +237,7 @@ class ProfileFragment : Fragment() {
         layout.isVisible = true
         searchBar.isVisible = true
         searchview.isVisible=true
+        deleteBtn.isVisible=false
         val toggle = ActionBarDrawerToggle(
             requireActivity(),
             requireActivity().findViewById(R.id.drawerLayout),
@@ -247,6 +277,7 @@ class ProfileFragment : Fragment() {
         }
         profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
             noteList.clear()
+            tempList.clear()
             gridrecyclerView.isVisible = false
             for (i in 0..it.size - 1) {
                 noteList.add(it[i])
@@ -308,44 +339,12 @@ class ProfileFragment : Fragment() {
         addNoteFAB.setOnClickListener {
             sharedViewModel.setGotoAddNotesPage(true)
         }
-        searchview.setOnClickListener {
-            searchNote()
-        }
+//        searchview.setOnClickListener {
+//            Log.d("onclick","clicked searchview")
+//            searchNote()
+//        }
     }
 
-    private fun searchNote() {
-
-        searchview.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                TODO("Not yet implemented")
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                Log.d("searching","searching for note "+newText)
-
-                tempList.clear()
-
-                val searchTxt=newText!!.toLowerCase(Locale.getDefault())
-                if(searchTxt.isNotEmpty()){
-                    noteList.forEach {
-                        if(it.title.toLowerCase(Locale.getDefault()).contains(searchTxt)){
-                            tempList.add(it)
-                        }
-                    }
-                    gridrecyclerView.adapter!!.notifyDataSetChanged()
-                }
-                else{
-                    tempList.clear()
-                    tempList.addAll(noteList)
-                    gridrecyclerView.adapter!!.notifyDataSetChanged()
-
-                }
-
-                return false
-            }
-
-        })
-    }
 
     private fun loadNotesInLayoutType() {
 

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -27,6 +28,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
     lateinit var gridorLinear:ImageView
     lateinit var searchBar:TextView
     lateinit var searchview: SearchView
+    lateinit var deleteBtn:ImageView
     lateinit var title:EditText
     lateinit var note:EditText
     lateinit var savetext:TextView
@@ -57,6 +59,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         gridorLinear=requireActivity().findViewById(R.id.notesLayout)
         searchBar=requireActivity().findViewById(R.id.searchNotes)
         searchview=requireActivity().findViewById(R.id.searchView)
+        deleteBtn=requireActivity().findViewById(R.id.deleteButton)
 
         title=view.findViewById(R.id.noteTitle)
         note=view.findViewById(R.id.userNote)
@@ -66,6 +69,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         gridorLinear.isVisible=false
         searchBar.isVisible=false
         searchview.isVisible=false
+        deleteBtn.isVisible=false
         toolbar=requireActivity().findViewById(R.id.myToolbar)
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
@@ -73,9 +77,11 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         }
         saveBtn.setOnClickListener(this)
         savetext.setOnClickListener(this)
+        deleteBtn.setOnClickListener(this)
 
         val updateStatus=SharedPref.getUpdateStatus("updateStatus")
         if(updateStatus){
+            deleteBtn.isVisible=true
             updateNote()
         }
 
@@ -112,6 +118,16 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
             }
 
         }
+        addNoteViewModel.databaseNoteDeletionStatus.observe(viewLifecycleOwner){
+            SharedPref.setUpdateStatus("updateStatus",false)
+            if(it){
+                sharedViewModel.setGotoHomePageStatus(true)
+            }
+            else{
+                Toast.makeText(requireContext(),"deletion failed",Toast.LENGTH_SHORT).show()
+
+            }
+        }
     }
 
 
@@ -125,7 +141,18 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
                     storeToDatabase()
                 }
             }
+            R.id.deleteButton->{
+                deleteNote()
+            }
         }
+    }
+
+    private fun deleteNote() {
+        val titleText=title.text.toString()
+        val noteText=note.text.toString()
+
+        val note=Notes(titleText,noteText)
+        addNoteViewModel.deleteNoteFromDB(note)
     }
 
     private fun updateNoteToDatabase() {

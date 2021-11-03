@@ -44,11 +44,10 @@ class Firebasedatabase {
         }
 
         fun addNote(note:Notes,listner: (Boolean) -> Unit) {
-            val numberOfNotes=SharedPref.getNoteSize("noteSize")
-            val nextNote=numberOfNotes+1
+
             FirebaseDatabase.getInstance().getReference("notes")
                 .child(Authentication.getCurrentUid())
-                .child("note"+nextNote.toString())
+                .push()
                 .setValue(note)
                 .addOnCompleteListener {
                     if(it.isSuccessful){
@@ -58,6 +57,21 @@ class Firebasedatabase {
                         listner(false)
                     }
                 }
+
+//            val numberOfNotes=SharedPref.getNoteSize("noteSize")
+//            val nextNote=numberOfNotes+1
+//            FirebaseDatabase.getInstance().getReference("notes")
+//                .child(Authentication.getCurrentUid())
+//                .child("note"+nextNote.toString())
+//                .setValue(note)
+//                .addOnCompleteListener {
+//                    if(it.isSuccessful){
+//                        listner(true)
+//                    }
+//                    else{
+//                        listner(false)
+//                    }
+//                }
         }
 
         fun readNotes(listner: (Boolean,MutableList<Notes>) -> Unit) {
@@ -75,11 +89,6 @@ class Firebasedatabase {
                            list.add(userNote)
                        }
                         listner(true,list)
-//                        val title=it.child("title").value
-//                        val note=it.child("note").value
-//                        val userNote=Notes(title.toString(),note.toString())
-//                        listner(userNote)
-
                     }
                 }
 
@@ -87,22 +96,92 @@ class Firebasedatabase {
         }
 
         fun updateNote(note: Notes, listner: (Boolean) -> Unit) {
-            val notePosition = SharedPref.getUpdateNotePosition("position")
-            FirebaseDatabase.getInstance().getReference("notes")
-                .child(FirebaseAuth.getInstance().currentUser!!.uid)
-                .child("note"+notePosition.toString())
-                .setValue(note)
-                .addOnCompleteListener{
-                    if(it.isSuccessful){
-                        listner(true)
+
+            getChildNode {
+                val key = it.key
+                FirebaseDatabase.getInstance().getReference("notes")
+                    .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                    .child(key!!)
+                    .setValue(note)
+                    .addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            listner(true)
+                        } else {
+                            listner(false)
+                        }
+
                     }
-                    else{
-                        listner(false)
-                    }
-                }
+            }
+
+//            val notePosition = SharedPref.getUpdateNotePosition("position")
+//
+//            FirebaseDatabase.getInstance().getReference("notes")
+//                .child(FirebaseAuth.getInstance().currentUser!!.uid)
+//                .child("note"+notePosition.toString())
+//                .setValue(note)
+//                .addOnCompleteListener{
+//                    if(it.isSuccessful){
+//                        listner(true)
+//                    }
+//                    else{
+//                        listner(false)
+//                    }
+//                }
 
 
         }
+
+        fun deleteNote(note: Notes, listner: (Boolean) -> Unit) {
+            getChildNode {
+                val key = it.key
+                FirebaseDatabase.getInstance().getReference("notes")
+                    .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                    .child(key!!)
+                    .removeValue()
+                    .addOnCompleteListener {
+                        if(it.isSuccessful){
+                            listner(true)
+                        }
+                        else{
+                            listner(false)
+                        }
+                    }
+
+            }
+
+//            val notePosition = SharedPref.getUpdateNotePosition("position")
+//            FirebaseDatabase.getInstance().getReference("notes")
+//                .child(FirebaseAuth.getInstance().currentUser!!.uid)
+//                .child("note"+notePosition.toString())
+//                .removeValue()
+//                .addOnCompleteListener {
+//                    if(it.isSuccessful){
+//                        listner(true)
+//                    }
+//                    else{
+//                        listner(false)
+//                    }
+//                }
+
+        }
+
+        fun getChildNode( listener:(DataSnapshot)->Unit){
+            val notePosition = SharedPref.getUpdateNotePosition("position")
+            var count=1
+            FirebaseDatabase.getInstance().getReference("notes")
+                .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                .get()
+                .addOnSuccessListener {
+                    for(i in it.children){
+                        if(count==notePosition){
+                            listener(i)
+                        }
+                        count++
+                    }
+                }
+        }
+
+
 
 
     }

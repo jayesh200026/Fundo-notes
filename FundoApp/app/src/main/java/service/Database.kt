@@ -57,21 +57,6 @@ class Firebasedatabase {
                         listner(false)
                     }
                 }
-
-//            val numberOfNotes=SharedPref.getNoteSize("noteSize")
-//            val nextNote=numberOfNotes+1
-//            FirebaseDatabase.getInstance().getReference("notes")
-//                .child(Authentication.getCurrentUid())
-//                .child("note"+nextNote.toString())
-//                .setValue(note)
-//                .addOnCompleteListener {
-//                    if(it.isSuccessful){
-//                        listner(true)
-//                    }
-//                    else{
-//                        listner(false)
-//                    }
-//                }
         }
 
         fun readNotes(listner: (Boolean,MutableList<Notes>) -> Unit) {
@@ -83,6 +68,7 @@ class Firebasedatabase {
                 .addOnSuccessListener {
                     if(it.exists()){
                        for(i in it.children){
+
                            val title=i.child("title").value.toString()
                            val note=i.child("note").value.toString()
                            val userNote=Notes(title, note)
@@ -112,26 +98,9 @@ class Firebasedatabase {
 
                     }
             }
-
-//            val notePosition = SharedPref.getUpdateNotePosition("position")
-//
-//            FirebaseDatabase.getInstance().getReference("notes")
-//                .child(FirebaseAuth.getInstance().currentUser!!.uid)
-//                .child("note"+notePosition.toString())
-//                .setValue(note)
-//                .addOnCompleteListener{
-//                    if(it.isSuccessful){
-//                        listner(true)
-//                    }
-//                    else{
-//                        listner(false)
-//                    }
-//                }
-
-
         }
 
-        fun deleteNote(note: Notes, listner: (Boolean) -> Unit) {
+        fun deleteNote(listner: (Boolean) -> Unit) {
             getChildNode {
                 val key = it.key
                 FirebaseDatabase.getInstance().getReference("notes")
@@ -148,21 +117,6 @@ class Firebasedatabase {
                     }
 
             }
-
-//            val notePosition = SharedPref.getUpdateNotePosition("position")
-//            FirebaseDatabase.getInstance().getReference("notes")
-//                .child(FirebaseAuth.getInstance().currentUser!!.uid)
-//                .child("note"+notePosition.toString())
-//                .removeValue()
-//                .addOnCompleteListener {
-//                    if(it.isSuccessful){
-//                        listner(true)
-//                    }
-//                    else{
-//                        listner(false)
-//                    }
-//                }
-
         }
 
         fun getChildNode( listener:(DataSnapshot)->Unit){

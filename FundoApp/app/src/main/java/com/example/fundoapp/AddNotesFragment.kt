@@ -13,8 +13,12 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import service.Authentication
+import service.DBHandler
+import service.Firebasedatabase
 import util.Notes
 import util.SharedPref
+import util.SqlNotes
 import viewmodels.AddNoteViewModel
 import viewmodels.AddNoteViewModelFactory
 import viewmodels.SharedViewModel
@@ -40,7 +44,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view=inflater.inflate(R.layout.fragment_add_notes, container, false)
 
         sharedViewModel = ViewModelProvider(
@@ -54,38 +57,52 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         )[AddNoteViewModel::class.java]
 
         observe()
+        initializeVar(view)
+        handleToolbar()
+        onClicks()
+        checkIfUpdate()
+        return view
+    }
 
-        userIcon = requireActivity().findViewById(R.id.userProfile)
-        gridorLinear=requireActivity().findViewById(R.id.notesLayout)
-        searchBar=requireActivity().findViewById(R.id.searchNotes)
-        searchview=requireActivity().findViewById(R.id.searchView)
-        deleteBtn=requireActivity().findViewById(R.id.deleteButton)
-
-        title=view.findViewById(R.id.noteTitle)
-        note=view.findViewById(R.id.userNote)
-        saveBtn=view.findViewById(R.id.saveFAB)
-        savetext=view.findViewById(R.id.saveText)
-        userIcon.isVisible=false
-        gridorLinear.isVisible=false
-        searchBar.isVisible=false
-        searchview.isVisible=false
-        deleteBtn.isVisible=false
-        toolbar=requireActivity().findViewById(R.id.myToolbar)
-        toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
-        toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
-        }
-        saveBtn.setOnClickListener(this)
-        savetext.setOnClickListener(this)
-        deleteBtn.setOnClickListener(this)
-
+    private fun checkIfUpdate() {
         val updateStatus=SharedPref.getUpdateStatus("updateStatus")
         if(updateStatus){
             deleteBtn.isVisible=true
             updateNote()
         }
+    }
 
-        return view
+    private fun onClicks() {
+        saveBtn.setOnClickListener(this)
+        savetext.setOnClickListener(this)
+        deleteBtn.setOnClickListener(this)
+    }
+
+    private fun handleToolbar() {
+        userIcon.isVisible=false
+        gridorLinear.isVisible=false
+        searchBar.isVisible=false
+        searchview.isVisible=false
+        deleteBtn.isVisible=false
+
+        toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
+        toolbar.setNavigationOnClickListener {
+            activity?.onBackPressed()
+        }
+    }
+
+    private fun initializeVar(view:View) {
+        userIcon = requireActivity().findViewById(R.id.userProfile)
+        gridorLinear=requireActivity().findViewById(R.id.notesLayout)
+        searchBar=requireActivity().findViewById(R.id.searchNotes)
+        searchview=requireActivity().findViewById(R.id.searchView)
+        deleteBtn=requireActivity().findViewById(R.id.deleteButton)
+        title=view.findViewById(R.id.noteTitle)
+        note=view.findViewById(R.id.userNote)
+        saveBtn=view.findViewById(R.id.saveFAB)
+        savetext=view.findViewById(R.id.saveText)
+        toolbar=requireActivity().findViewById(R.id.myToolbar)
+
     }
 
     private fun updateNote() {
@@ -103,7 +120,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
             sharedViewModel.setGotoHomePageStatus(true)
         }
         else{
-            Toast.makeText(requireContext(),"database storing failed",Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(),getString(R.string.noteStoringFailed),Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -113,7 +130,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
                     sharedViewModel.setGotoHomePageStatus(true)
                 }
             else{
-                Toast.makeText(requireContext(),"updation failed",Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(),getString(R.string.noteUpdationFailed),Toast.LENGTH_SHORT).show()
 
             }
 
@@ -124,7 +141,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
                 sharedViewModel.setGotoHomePageStatus(true)
             }
             else{
-                Toast.makeText(requireContext(),"deletion failed",Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(),getString(R.string.noteDeletionFailed),Toast.LENGTH_SHORT).show()
 
             }
         }
@@ -148,27 +165,47 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
     }
 
     private fun deleteNote() {
+        val context=requireContext()
+        val uid=Authentication.getCurrentUid()
         val titleText=title.text.toString()
         val noteText=note.text.toString()
+        val note=SqlNotes(uid,titleText,noteText)
+        val db=DBHandler(context)
+        if(titleText.isNotEmpty() && noteText.isNotEmpty()){
+            //addNoteViewModel.deleteNoteFromDB()
+            db.deleteNote(note)
+        }
+        //val note=Notes(titleText,noteText)
 
-        val note=Notes(titleText,noteText)
-        addNoteViewModel.deleteNoteFromDB(note)
     }
 
     private fun updateNoteToDatabase() {
+        val context=requireContext()
         val titleText=title.text.toString()
         val noteText=note.text.toString()
 
-        val note=Notes(titleText,noteText)
-        addNoteViewModel.updateNoteIndatabse(note)
+        val uid=Authentication.getCurrentUid()
+        val note=SqlNotes(uid,titleText,noteText)
+        val db=DBHandler(context)
+        db.updateNote(note)
+
+//        val note=Notes(titleText,noteText)
+//        addNoteViewModel.updateNoteIndatabse(note)
     }
 
     private fun storeToDatabase() {
+        val context=requireContext()
+
         val titleText=title.text.toString()
         val noteText=note.text.toString()
+        val uid=Authentication.getCurrentUid()
 
-        val note=Notes(titleText,noteText)
-        addNoteViewModel.addNotesToDatabase(note)
+        val note=SqlNotes(uid,titleText,noteText)
+        val db=DBHandler(context)
+        db.insertNote(note)
+//
+//        val note=Notes(titleText,noteText)
+//        addNoteViewModel.addNotesToDatabase(note)
 
     }
 

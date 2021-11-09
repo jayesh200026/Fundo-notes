@@ -8,7 +8,35 @@
     android:layout_marginTop="55dp"
     android:background="@drawable/profile_background">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ScrollView
+        android:id="@+id/scrollView2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvNotes"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/notePB"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+   <!-- <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvNotes"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -19,67 +47,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />-->
 
-
-
-<!--    <androidx.appcompat.widget.Toolbar-->
-<!--        android:id="@+id/myToolbar"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="55dp"-->
-<!--        android:layout_margin="5dp"-->
-<!--        android:background="@drawable/input_bg"-->
-<!--        android:backgroundTint="@color/black"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-
-<!--        >-->
-<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent">-->
-
-<!--            <ImageView-->
-<!--                android:id="@+id/mainMenu"-->
-<!--                android:layout_width="32dp"-->
-<!--                android:layout_height="33dp"-->
-<!--                android:src="@drawable/ic_baseline_menu_24"-->
-<!--                app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                app:layout_constraintEnd_toStartOf="@+id/searchNotes"-->
-<!--                app:layout_constraintHorizontal_bias="0.0"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toTopOf="parent"-->
-<!--                app:layout_constraintVertical_bias="0.411" />-->
-
-<!--            <TextView-->
-<!--                android:id="@+id/searchNotes"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="30dp"-->
-<!--                android:text="Search your notes"-->
-<!--                android:gravity="center"-->
-<!--                android:textColor="@color/white"-->
-<!--                app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                app:layout_constraintEnd_toEndOf="parent"-->
-<!--                app:layout_constraintHorizontal_bias="0.343"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toTopOf="parent">-->
-
-<!--            </TextView>-->
-
-<!--            <ImageView-->
-<!--                android:id="@+id/userProfile"-->
-<!--                android:layout_width="32dp"-->
-<!--                android:layout_height="33dp"-->
-<!--                android:src="@drawable/ic_baseline_account_circle_24"-->
-<!--                app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                app:layout_constraintEnd_toEndOf="parent"-->
-<!--                app:layout_constraintHorizontal_bias="0.895"-->
-<!--                app:layout_constraintStart_toEndOf="@+id/searchNotes"-->
-<!--                app:layout_constraintTop_toTopOf="parent"></ImageView>-->
-
-<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
-
-<!--    </androidx.appcompat.widget.Toolbar>-->
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingButton"

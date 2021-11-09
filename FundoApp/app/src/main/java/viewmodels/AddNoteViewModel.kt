@@ -17,6 +17,7 @@ class AddNoteViewModel:ViewModel(){
     var databaseNoteDeletionStatus=_databaseNoteDeletionStatus as LiveData<Boolean>
 
     fun addNotesToDatabase(note:Notes){
+
         Firebasedatabase.addNote(note){
             _databaseNoteAddedStatus.value=it
         }
@@ -29,8 +30,8 @@ class AddNoteViewModel:ViewModel(){
 
     }
 
-    fun deleteNoteFromDB(note: Notes) {
-        Firebasedatabase.deleteNote(note){
+    fun deleteNoteFromDB() {
+        Firebasedatabase.deleteNote(){
             _databaseNoteDeletionStatus.value=it
         }
 

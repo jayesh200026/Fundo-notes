@@ -1,16 +1,11 @@
 package com.example.fundoapp
 
 import android.app.Dialog
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -27,11 +22,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
 import com.squareup.picasso.Picasso
-import service.Authentication
-import service.Firebasedatabase
+import service.DBHandler
 import util.Notes
 import util.SharedPref
 import util.TodoAdapter
@@ -43,29 +35,27 @@ import viewmodels.SharedViewModelFactory
 import java.util.*
 
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment(), SearchView.OnCloseListener {
 
     lateinit var dialog: Dialog
     lateinit var userIcon: ImageView
     lateinit var layout: ImageView
     lateinit var searchBar: TextView
-    lateinit var searchview:SearchView
-    lateinit var deleteBtn:ImageView
-    lateinit var dailog_logout: Button
-    lateinit var dialog_profile: ImageView
-    lateinit var dailog_edit: ImageView
-    lateinit var dailog_username: TextView
-    lateinit var dailog_email: TextView
+    lateinit var searchview: SearchView
+    lateinit var deleteBtn: ImageView
+    lateinit var dialogLogout: Button
+    lateinit var dialogProfile: ImageView
+    lateinit var dialogEdit: ImageView
+    lateinit var dialogUsername: TextView
+    lateinit var dialogEmail: TextView
     lateinit var dialogClose: ImageView
     lateinit var getImage: ActivityResultLauncher<String>
     lateinit var addNoteFAB: View
     lateinit var adapter: TodoAdapter
     lateinit var linearAdpater: TodoAdpaterLinear
-
-    //lateinit var recyclerView:RecyclerView
     lateinit var gridrecyclerView: RecyclerView
-    var noteList = mutableListOf<Notes>()
 
+    var noteList = mutableListOf<Notes>()
     var tempList = mutableListOf<Notes>()
 
 
@@ -83,50 +73,27 @@ class ProfileFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
         (requireActivity() as AppCompatActivity).supportActionBar?.show()
 
-        var profilePhot: Uri? = null
-
-        userIcon = requireActivity().findViewById(R.id.userProfile)
-        layout = requireActivity().findViewById(R.id.notesLayout)
-        searchBar = requireActivity().findViewById(R.id.searchNotes)
-        searchview=requireActivity().findViewById(R.id.searchView)
-        deleteBtn=requireActivity().findViewById(R.id.deleteButton)
-        addNoteFAB = view.findViewById(R.id.floatingButton)
-//        adapter = TodoAdapter(noteList)
-//        linearAdpater = TodoAdpaterLinear(noteList)
-        adapter = TodoAdapter(tempList)
-        linearAdpater = TodoAdpaterLinear(tempList)
-
-        //recyclerView=view.findViewById(R.id.rvNotes)
-        gridrecyclerView = view.findViewById(R.id.rvNotes)
-        //recyclerView.adapter=adapter
-        //recyclerView.layoutManager=LinearLayoutManager(requireContext())
+        initializeViewModels()
+        initializeVar(view)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-        //gridrecyclerView.adapter=adapter
-
-        adapter.setOnItemClickListner(object :TodoAdapter.onItemClickListner{
-            override fun onItemClick(position: Int) {
-
-                setValuesForUpdation(position)
-                Toast.makeText(requireContext(),"You clicked item ${position+1}",Toast.LENGTH_SHORT).show()
-                sharedViewModel.setGotoAddNotesPage(true)
-            }
-
-        })
-
-        linearAdpater.setOnItemClickListner(object :TodoAdpaterLinear.onItemClickListner{
-            override fun onItemClick(position: Int) {
-                setValuesForUpdation(position)
-                Toast.makeText(requireContext(),"You clicked item ${position+1}",Toast.LENGTH_SHORT).show()
-                sharedViewModel.setGotoAddNotesPage(true)
-            }
-
-        })
-
-
-
+        adapterListener()
         toolbarHandling()
+        observe()
+        getUserDetails()
+        //getUserNotes()
+        getNotesFromSql()
+        loadAvatar(userIcon)
+        initialiseDialog()
+        checkLayout()
+        takePhoto()
+        onClickListeners()
+        searchNote()
+        searchview.setOnCloseListener(this)
 
+        return view
+    }
 
+    private fun initializeViewModels() {
         sharedViewModel = ViewModelProvider(
             requireActivity(),
             SharedViewModelFactory()
@@ -136,73 +103,116 @@ class ProfileFragment : Fragment() {
             this,
             ProfileViewModelFactory()
         )[ProfileViewModel::class.java]
+    }
 
-        observe()
-
-        getUserDetails()
-        getUserNotes()
-
-
-        loadAvatar(userIcon)
-        if (SharedPref.get("uri") == "") {
-            profileViewModel.fetchProfile()
-        }
-
-        initialiseDialog()
-
-        checkLayout()
-
+    private fun takePhoto() {
         getImage = registerForActivityResult(
             ActivityResultContracts.GetContent(),
             ActivityResultCallback {
-                dialog_profile.setImageURI(it)
+                dialogProfile.setImageURI(it)
                 userIcon.setImageURI(it)
                 val uid = sharedViewModel.getCurrentUid()
                 profileViewModel.uploadProfile(uid, it)
             }
         )
+    }
 
-        onClickListeners()
+    private fun initializeVar(view: View) {
+        userIcon = requireActivity().findViewById(R.id.userProfile)
+        layout = requireActivity().findViewById(R.id.notesLayout)
+        searchBar = requireActivity().findViewById(R.id.searchNotes)
+        searchview = requireActivity().findViewById(R.id.searchView)
+        deleteBtn = requireActivity().findViewById(R.id.deleteButton)
+        addNoteFAB = view.findViewById(R.id.floatingButton)
+        gridrecyclerView = view.findViewById(R.id.rvNotes)
+        adapter = TodoAdapter(tempList)
+        linearAdpater = TodoAdpaterLinear(tempList)
+    }
 
-        searchview.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
+    private fun adapterListener() {
+        adapter.setOnItemClickListner(object : TodoAdapter.onItemClickListner {
+            override fun onItemClick(position: Int) {
+
+                setValuesForUpdation(position)
+                Toast.makeText(
+                    requireContext(),
+                    "You clicked item ${position + 1}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                sharedViewModel.setGotoAddNotesPage(true)
+            }
+
+        })
+
+        linearAdpater.setOnItemClickListner(object : TodoAdpaterLinear.onItemClickListner {
+            override fun onItemClick(position: Int) {
+                setValuesForUpdation(position)
+                Toast.makeText(
+                    requireContext(),
+                    "You clicked item ${position + 1}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                sharedViewModel.setGotoAddNotesPage(true)
+            }
+
+        })
+
+    }
+
+    private fun getNotesFromSql() {
+        val db = DBHandler(requireContext())
+        val userNotes = db.getNotes(sharedViewModel.getCurrentUid())
+        tempList.clear()
+        noteList.clear()
+        noteList.addAll(userNotes)
+        tempList.addAll(userNotes)
+        gridrecyclerView.adapter?.notifyDataSetChanged()
+    }
+
+
+    private fun searchNote() {
+        searchview.setOnSearchClickListener {
+            userIcon.isVisible = false
+            layout.isVisible = false
+            searchBar.isVisible = false
+            searchview.maxWidth = Integer.MAX_VALUE
+
+        }
+
+        searchview.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 TODO("Not yet implemented")
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                Log.d("searching","searching for note "+newText)
 
                 tempList.clear()
 
-                val searchTxt=newText!!.toLowerCase(Locale.getDefault())
-                if(searchTxt.isNotEmpty()){
+                val searchTxt = newText!!.toLowerCase(Locale.getDefault())
+                if (searchTxt.isNotEmpty()) {
                     noteList.forEach {
-                        if(it.title.toLowerCase(Locale.getDefault()).contains(searchTxt)){
+                        if (it.title.toLowerCase(Locale.getDefault()).contains(searchTxt)) {
                             tempList.add(it)
                         }
                     }
                     gridrecyclerView.adapter!!.notifyDataSetChanged()
-                }
-                else{
+                } else {
                     tempList.clear()
                     tempList.addAll(noteList)
                     gridrecyclerView.adapter!!.notifyDataSetChanged()
-
                 }
 
                 return false
             }
 
         })
-
-        return view
     }
 
     private fun setValuesForUpdation(position: Int) {
-        SharedPref.setUpdateStatus("updateStatus",true)
-        SharedPref.updateNotePosition("position",position+1)
-        SharedPref.addString("title",noteList[position].title)
-        SharedPref.addString("note",noteList[position].note)
+        SharedPref.setUpdateStatus("updateStatus", true)
+        SharedPref.updateNotePosition("position", position + 1)
+        SharedPref.addString("title", noteList[position].title)
+        SharedPref.addString("note", noteList[position].note)
     }
 
     private fun getUserNotes() {
@@ -236,8 +246,8 @@ class ProfileFragment : Fragment() {
         userIcon.isVisible = true
         layout.isVisible = true
         searchBar.isVisible = true
-        searchview.isVisible=true
-        deleteBtn.isVisible=false
+        searchview.isVisible = true
+        deleteBtn.isVisible = false
         val toggle = ActionBarDrawerToggle(
             requireActivity(),
             requireActivity().findViewById(R.id.drawerLayout),
@@ -263,7 +273,7 @@ class ProfileFragment : Fragment() {
             if (it != null) {
                 SharedPref.addString("uri", it.toString())
                 Picasso.get().load(it).into(userIcon)
-                Picasso.get().load(it).into(dialog_profile)
+                Picasso.get().load(it).into(dialogProfile)
             }
         }
 
@@ -272,8 +282,8 @@ class ProfileFragment : Fragment() {
             fullName = it.fullName
             SharedPref.addString("email", email!!)
             SharedPref.addString("name", fullName!!)
-            dailog_email.text = email
-            dailog_username.text = fullName
+            dialogEmail.text = email
+            dialogUsername.text = fullName
         }
         profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
             noteList.clear()
@@ -315,13 +325,13 @@ class ProfileFragment : Fragment() {
             dialog.show()
         }
 
-        dailog_edit.setOnClickListener {
+        dialogEdit.setOnClickListener {
             getImage.launch("image/*")
         }
 
-        dailog_logout.setOnClickListener {
+        dialogLogout.setOnClickListener {
             userIcon.setImageResource(R.drawable.man)
-            dialog_profile.setImageResource(R.drawable.man)
+            dialogProfile.setImageResource(R.drawable.man)
             SharedPref.clearAll()
             dialog.dismiss()
             sharedViewModel.logout()
@@ -339,10 +349,7 @@ class ProfileFragment : Fragment() {
         addNoteFAB.setOnClickListener {
             sharedViewModel.setGotoAddNotesPage(true)
         }
-//        searchview.setOnClickListener {
-//            Log.d("onclick","clicked searchview")
-//            searchNote()
-//        }
+
     }
 
 
@@ -366,16 +373,12 @@ class ProfileFragment : Fragment() {
             gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
             gridrecyclerView.adapter = linearAdpater
             gridrecyclerView.isVisible = true
-            //recyclerView.adapter=linearAdpater
-            //recyclerView.isVisible=true
             SharedPref.addString("counter", "true")
 
         } else {
             layout.setImageResource(R.drawable.ic_linear_24)
             Toast.makeText(requireContext(), "grid notes will be loaded ", Toast.LENGTH_SHORT)
                 .show()
-            //recyclerView.adapter=adapter
-            //recyclerView.isVisible=false
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
             gridrecyclerView.adapter = adapter
@@ -390,23 +393,23 @@ class ProfileFragment : Fragment() {
     private fun initialiseDialog() {
         dialog = Dialog(requireContext())
         dialog.setContentView(R.layout.custom_dailogue)
-        dailog_logout = dialog.findViewById(R.id.dailogueLogout)
-        dialog_profile = dialog.findViewById(R.id.dialogProfile)
-        dailog_edit = dialog.findViewById(R.id.editProfile)
-        dailog_email = dialog.findViewById(R.id.dailogueEmail)
-        dailog_username = dialog.findViewById(R.id.dailogueuserName)
+        dialogLogout = dialog.findViewById(R.id.dailogueLogout)
+        dialogProfile = dialog.findViewById(R.id.dialogProfile)
+        dialogEdit = dialog.findViewById(R.id.editProfile)
+        dialogEmail = dialog.findViewById(R.id.dailogueEmail)
+        dialogUsername = dialog.findViewById(R.id.dailogueuserName)
         dialogClose = dialog.findViewById(R.id.dialogClose)
         val sharePrefName = SharedPref.get("name")
         val sharePrefEmail = SharedPref.get("email")
         val sharePrefUriString = SharedPref.get("uri")
         val photoUri = sharePrefUriString?.toUri()
 
-        dailog_username.text = sharePrefName
-        dailog_email.text = sharePrefEmail
+        dialogUsername.text = sharePrefName
+        dialogEmail.text = sharePrefEmail
         if (sharePrefUriString == "") {
-            dialog_profile.setImageResource(R.drawable.man)
+            dialogProfile.setImageResource(R.drawable.man)
         } else {
-            Picasso.get().load(photoUri).into(dialog_profile)
+            Picasso.get().load(photoUri).into(dialogProfile)
         }
 
 
@@ -428,6 +431,7 @@ class ProfileFragment : Fragment() {
         val photoUri = sharePrefUriString?.toUri()
         if (sharePrefUriString == "") {
             userIcon?.setImageResource(R.drawable.man)
+            profileViewModel.fetchProfile()
         } else {
             Picasso.get().load(photoUri).into(userIcon)
         }
@@ -441,5 +445,14 @@ class ProfileFragment : Fragment() {
 
     }
 
+    override fun onClose(): Boolean {
+        userIcon.isVisible = true
+        layout.isVisible = true
+        searchBar.isVisible = true
+        return false
+    }
+
 
 }
+
+

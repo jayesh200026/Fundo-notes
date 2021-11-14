@@ -17,6 +17,7 @@ import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.appcompat.widget.SearchView
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,10 +32,11 @@ import com.example.fundoapp.viewModel.ProfileViewModel
 import com.example.fundoapp.viewModel.ProfileViewModelFactory
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
+import util.Utillity
 import java.util.*
 
 
-class ProfileFragment : Fragment(), SearchView.OnCloseListener {
+class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
     lateinit var dialog: Dialog
     lateinit var userIcon: ImageView
@@ -69,7 +71,7 @@ class ProfileFragment : Fragment(), SearchView.OnCloseListener {
         savedInstanceState: Bundle?
     ): View? {
 
-        val view = inflater.inflate(R.layout.fragment_profile, container, false)
+        val view = inflater.inflate(R.layout.fragment_home, container, false)
         (requireActivity() as AppCompatActivity).supportActionBar?.show()
 
         initializeViewModels()
@@ -271,6 +273,8 @@ class ProfileFragment : Fragment(), SearchView.OnCloseListener {
             R.string.open,
             R.string.close
         )
+        val drawerLayout = requireActivity().findViewById<DrawerLayout>(R.id.drawerLayout)
+        drawerLayout.addDrawerListener(toggle)
         toggle.isDrawerIndicatorEnabled = true
         toggle.syncState()
     }
@@ -306,7 +310,9 @@ class ProfileFragment : Fragment(), SearchView.OnCloseListener {
             tempList.clear()
             gridrecyclerView.isVisible = false
             for (i in 0..it.size - 1) {
-                noteList.add(it[i])
+                if(!it[i].deleted) {
+                    noteList.add(it[i])
+                }
             }
             tempList.addAll(noteList)
             SharedPref.addNoteSize("noteSize", noteList.size)
@@ -358,8 +364,8 @@ class ProfileFragment : Fragment(), SearchView.OnCloseListener {
         }
 
         layout.setOnClickListener {
-
-            loadNotesInLayoutType()
+            Utillity.loadNotesInLayoutType(requireContext(),layout,gridrecyclerView,linearAdpater,adapter)
+            //loadNotesInLayoutType()
         }
 
         addNoteFAB.setOnClickListener {
@@ -383,8 +389,8 @@ class ProfileFragment : Fragment(), SearchView.OnCloseListener {
 
         if (flag) {
             layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
-            Toast.makeText(requireContext(), "linear notes will be loaded ", Toast.LENGTH_SHORT)
-                .show()
+//            Toast.makeText(requireContext(), "linear notes will be loaded ", Toast.LENGTH_SHORT)
+//                .show()
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
             gridrecyclerView.adapter = linearAdpater
@@ -393,8 +399,8 @@ class ProfileFragment : Fragment(), SearchView.OnCloseListener {
 
         } else {
             layout.setImageResource(R.drawable.ic_linear_24)
-            Toast.makeText(requireContext(), "grid notes will be loaded ", Toast.LENGTH_SHORT)
-                .show()
+//            Toast.makeText(requireContext(), "grid notes will be loaded ", Toast.LENGTH_SHORT)
+//                .show()
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
             gridrecyclerView.adapter = adapter

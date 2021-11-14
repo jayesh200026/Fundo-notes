@@ -109,7 +109,7 @@ class RegistrationFragment : Fragment(), View.OnClickListener {
                     Toast.LENGTH_LONG
                 ).show()
                 val user = User(fullNameValue, ageValue, emailValue)
-                sharedViewModel.addUserToDatabase(user)
+                sharedViewModel.addUserToDatabase(user,requireContext())
                 //sharedViewModel.setGotoHomePageStatus(true)
             } else {
                 Toast.makeText(

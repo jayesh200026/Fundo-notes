@@ -174,7 +174,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
-           addNoteViewModel.deleteNote(uid,key!!,context)
+           addNoteViewModel.deleteNote(titleText,noteText,key!!,context)
 
         }
 

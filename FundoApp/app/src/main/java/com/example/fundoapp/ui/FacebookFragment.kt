@@ -106,7 +106,7 @@ class FacebookFragment : Fragment() {
 
             }
             val userObj = User(fullName = name, email = email)
-            sharedViewModel.addUserToDatabase(userObj)
+            sharedViewModel.addUserToDatabase(userObj,requireContext())
 
             //sharedViewModel.uploadProfile(uid,bitmap)
 

@@ -1,4 +1,4 @@
-package com.example.fundoapp.util
+package com.example.fundoapp.roomdb.Entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -21,6 +21,14 @@ data class NoteEntity(
     val title: String,
 
     @ColumnInfo(name = "note")
-    val note: String
+    val note: String,
+
+    @ColumnInfo(name="deleted")
+    val deleted:Boolean=false,
+
+    @ColumnInfo(name="modifiedTime")
+    val modifiedTime:String
+
+
 
 )

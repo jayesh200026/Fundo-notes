@@ -13,17 +13,20 @@ import kotlin.coroutines.suspendCoroutine
 
 class Firebasedatabase {
     companion object {
-        fun addUser(user: User, listner: (Boolean) -> Unit) {
-            FirebaseDatabase.getInstance().getReference("users")
-                .child(FirebaseAuth.getInstance().currentUser!!.uid)
-                .setValue(user)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        listner(true)
-                    } else {
-                        listner(false)
+        suspend fun addUser(user: User): Boolean {
+            return suspendCoroutine { cont ->
+                FirebaseDatabase.getInstance().getReference("users")
+                    .child(FirebaseAuth.getInstance().currentUser!!.uid)
+                    .setValue(user)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            cont.resumeWith(Result.success(true))
+                        } else {
+                            cont.resumeWith(Result.failure(task.exception!!))
+                        }
                     }
-                }
+            }
+
         }
 
         fun readUser(listner: (User) -> Unit) {
@@ -38,7 +41,6 @@ class Firebasedatabase {
                         val user = User(
                             fullName = fullName.toString(),
                             email = email.toString(),
-                            status = true
                         )
                         listner(user)
                     }
@@ -46,7 +48,7 @@ class Firebasedatabase {
         }
 
         suspend fun addNote(note: NotesKey): Boolean {
-            val userNote = Notes(note.title, note.note)
+            val userNote = Notes(note.title, note.note, note.deleted, note.mTime)
             return suspendCoroutine { cont ->
                 FirebaseDatabase.getInstance().getReference("notes")
                     .child(Authentication.getCurrentUid())
@@ -77,7 +79,11 @@ class Firebasedatabase {
                                 val title = i.child("title").value.toString()
                                 val note = i.child("note").value.toString()
                                 val key = i.key
-                                val userNote = NotesKey(title, note, key!!)
+                                val deleted = i.child("deleted").value
+                                val deletedStatus = deleted == "true"
+
+                                val mTime = i.child("mTime").value.toString()
+                                val userNote = NotesKey(title, note, key!!, deletedStatus, mTime)
                                 list.add(userNote)
                             }
                             cont.resumeWith(
@@ -92,7 +98,7 @@ class Firebasedatabase {
         }
 
         suspend fun updateNote(note: NotesKey): Boolean {
-            val userNote = Notes(note.title, note.note)
+            val userNote = Notes(note.title, note.note, note.deleted, note.mTime)
             return suspendCoroutine { cont ->
                 FirebaseDatabase.getInstance().getReference("notes")
                     .child(FirebaseAuth.getInstance().currentUser!!.uid)

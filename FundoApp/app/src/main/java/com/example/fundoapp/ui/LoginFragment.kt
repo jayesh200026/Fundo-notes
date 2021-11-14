@@ -115,7 +115,7 @@ open class LoginFragment : Fragment(), View.OnClickListener {
     }
 
     private fun loginUser() {
-        var profileFragment = ProfileFragment()
+        var profileFragment = HomeFragment()
         val emailValue = email.text.toString().trim()
         val passwordValue = password.text.toString().trim()
         val validEmail = Utillity.validateEmail(emailValue, email)

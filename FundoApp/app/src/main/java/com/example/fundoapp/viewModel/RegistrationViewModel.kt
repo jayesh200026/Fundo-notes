@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.example.fundoapp.service.Authentication
 import util.AuthStatus
 
-class RegistrationViewModel:ViewModel(){
+class RegistrationViewModel : ViewModel() {
 
     private val _registrationStatus = MutableLiveData<AuthStatus>()
     val registrationStatus = _registrationStatus as LiveData<AuthStatus>
@@ -15,6 +15,5 @@ class RegistrationViewModel:ViewModel(){
         Authentication.registerUser(email, password) {
             _registrationStatus.value = it
         }
-
     }
 }

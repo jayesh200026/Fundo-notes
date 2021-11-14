@@ -114,6 +114,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     gotoAddNotesPage()
                 }
             })
+        sharedViewModel.gotoDeletedNotePageStatus.observe(this@MainActivity,
+            {
+                if(it){
+                    gotoDeletedNotePage()
+                }
+            })
+
 //        sharedViewModel.loginStatus.observe(this@MainActivity, {
 //            if (it.status) {
 //                Toast.makeText(
@@ -132,6 +139,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 //            }
 //        }
 //        )
+
+    }
+
+
+
+    private fun gotoDeletedNotePage() {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flFragment, DeletedNoteFragment())
+            commit()
+        }
 
     }
 
@@ -168,7 +185,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun gotoHomePage() {
         supportFragmentManager.beginTransaction().apply {
-            replace(R.id.flFragment, ProfileFragment())
+            replace(R.id.flFragment, HomeFragment())
             commit()
         }
 
@@ -193,8 +210,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawerLayout.closeDrawer(GravityCompat.START)
         when (item.itemId) {
             R.id.menuAddNotes -> {
-                Toast.makeText(applicationContext, "Clicked add notes menu", Toast.LENGTH_LONG)
-                    .show()
+
             }
             R.id.menuReminder -> {
                 Toast.makeText(applicationContext, "Clicked reminder menu", Toast.LENGTH_LONG)
@@ -205,7 +221,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     .show()
             }
             R.id.menuNotes -> {
-                Toast.makeText(applicationContext, "Clicked on notes", Toast.LENGTH_LONG).show()
+                sharedViewModel.setGotoHomePageStatus(true)
+            }
+            R.id.menuDeleted->{
+                sharedViewModel.setGoToDeletedNotePageStatus(true)
             }
         }
         return true

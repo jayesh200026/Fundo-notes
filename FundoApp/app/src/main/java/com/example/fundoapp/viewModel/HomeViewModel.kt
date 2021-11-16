@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 import com.example.fundoapp.service.Authentication
 import com.example.fundoapp.service.DBService
 import service.FirebaseStorage
-import service.Firebasedatabase
-import com.example.fundoapp.util.NotesKey
-import util.User
+import service.FirebaseDatabase
+import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.service.model.User
 import java.lang.Exception
 
-class ProfileViewModel:ViewModel(){
+class HomeViewModel:ViewModel(){
     private val _profilePhotoFetch= MutableLiveData<Uri>()
     val profilePhotoFetch=_profilePhotoFetch as LiveData<Uri>
 
@@ -46,7 +46,7 @@ class ProfileViewModel:ViewModel(){
     }
 
     fun readUserFRomDatabase() {
-        Firebasedatabase.readUser {
+        FirebaseDatabase.readUser {
             _databaseReadingStatus.value = it
         }
     }

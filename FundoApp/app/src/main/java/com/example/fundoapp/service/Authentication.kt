@@ -10,8 +10,8 @@ import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import util.AuthStatus
-import util.FirebaseUserToken
+import com.example.fundoapp.util.AuthStatus
+import com.example.fundoapp.util.FirebaseUserToken
 import util.UserLoginResult
 
 
@@ -124,8 +124,7 @@ class Authentication {
                 }
         }
 
-        fun getCurrentUid() = FirebaseAuth.getInstance().currentUser!!.uid
-
+        fun getCurrentUid() = FirebaseAuth.getInstance().currentUser?.uid
 
 
     }

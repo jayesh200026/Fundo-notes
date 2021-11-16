@@ -13,8 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.fundoapp.R
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
-import util.User
-import util.Utillity
+import com.example.fundoapp.service.model.User
+import com.example.fundoapp.util.Utillity
 import com.example.fundoapp.viewModel.RegistrationViewModel
 import com.example.fundoapp.viewModel.RegistrationViewModelFactory
 

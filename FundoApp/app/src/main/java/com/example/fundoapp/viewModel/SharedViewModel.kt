@@ -1,7 +1,6 @@
 package com.example.fundoapp.viewModel
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,8 +10,7 @@ import com.example.fundoapp.service.Authentication
 import com.example.fundoapp.service.DBService
 import com.example.fundoapp.ui.MainActivity
 import kotlinx.coroutines.launch
-import service.Firebasedatabase
-import util.User
+import com.example.fundoapp.service.model.User
 
 class SharedViewModel : ViewModel() {
     private val _gotoHomePageStatus = MutableLiveData<Boolean>()
@@ -83,7 +81,7 @@ class SharedViewModel : ViewModel() {
     }
 
 
-    fun getCurrentUid(): String {
+    fun getCurrentUid(): String? {
         return Authentication.getCurrentUid()
     }
 

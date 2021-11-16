@@ -1,16 +1,23 @@
 package com.example.fundoapp.ui
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
+import androidx.work.*
 import com.example.fundoapp.*
+import com.example.fundoapp.R
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.example.fundoapp.viewModel.SharedViewModel
@@ -18,6 +25,8 @@ import com.example.fundoapp.viewModel.SharedViewModelFactory
 import com.example.fundoapp.service.Authentication
 import com.example.fundoapp.service.RoomDatabase
 import com.example.fundoapp.util.SharedPref
+import com.example.fundoapp.service.SyncWorker
+
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     companion object {
@@ -65,9 +74,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             gotoSplashScreen()
         }
-        //gotoLoginPage()
-
+        worker()
     }
+
+
 
 
     private fun checkIfLoggedIn(): Boolean {
@@ -116,32 +126,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             })
         sharedViewModel.gotoDeletedNotePageStatus.observe(this@MainActivity,
             {
-                if(it){
+                if (it) {
                     gotoDeletedNotePage()
                 }
             })
-
-//        sharedViewModel.loginStatus.observe(this@MainActivity, {
-//            if (it.status) {
-//                Toast.makeText(
-//                    this,
-//                    it.message,
-//                    Toast.LENGTH_LONG
-//                ).show()
-//
-//                sharedViewModel.setGotoHomePageStatus(true)
-//            } else {
-//                Toast.makeText(
-//                    this,
-//                    it.message,
-//                    Toast.LENGTH_LONG
-//                ).show()
-//            }
-//        }
-//        )
-
     }
-
 
 
     private fun gotoDeletedNotePage() {
@@ -223,7 +212,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.menuNotes -> {
                 sharedViewModel.setGotoHomePageStatus(true)
             }
-            R.id.menuDeleted->{
+            R.id.menuDeleted -> {
                 sharedViewModel.setGoToDeletedNotePageStatus(true)
             }
         }
@@ -251,6 +240,32 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+
+    private fun worker() {
+        val connectivityManager =
+            this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            connectivityManager.registerDefaultNetworkCallback(object :ConnectivityManager.NetworkCallback(){
+                override fun onAvailable(network: Network) {
+                    super.onAvailable(network)
+
+                    val constraints: Constraints = Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+
+                    val syncWorkRequest: WorkRequest =
+                        OneTimeWorkRequestBuilder<SyncWorker>()
+                            .setConstraints(constraints)
+                            .build()
+
+                    WorkManager.getInstance(this@MainActivity).enqueue(syncWorkRequest)
+                }
+
+            })
+        }
+
     }
 
 

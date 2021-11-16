@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.lifecycle.ViewModelProvider
 
-import util.Utillity
+import com.example.fundoapp.util.Utillity
 import androidx.appcompat.app.AppCompatActivity
 import com.example.fundoapp.R
 import com.example.fundoapp.viewModel.LoginViewModel

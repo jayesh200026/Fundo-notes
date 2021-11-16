@@ -1,4 +1,4 @@
-package util
+package com.example.fundoapp.util
 
 import com.google.firebase.auth.FirebaseUser
 

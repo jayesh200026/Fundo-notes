@@ -10,7 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import com.example.fundoapp.R
-import util.Utillity
+import com.example.fundoapp.util.Utillity
 import com.example.fundoapp.viewModel.ResetPasswordViewModel
 import com.example.fundoapp.viewModel.ResetPasswordViewModelFactory
 import com.example.fundoapp.viewModel.SharedViewModel

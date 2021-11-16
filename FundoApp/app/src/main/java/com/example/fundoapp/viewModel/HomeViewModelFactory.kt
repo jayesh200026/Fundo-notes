@@ -3,8 +3,8 @@ package com.example.fundoapp.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
-class ProfileViewModelFactory: ViewModelProvider.Factory{
+class HomeViewModelFactory: ViewModelProvider.Factory{
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return ProfileViewModel() as T
+        return HomeViewModel() as T
     }
 }

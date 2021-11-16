@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.fundoapp.service.Authentication
-import util.AuthStatus
+import com.example.fundoapp.util.AuthStatus
 
 class ResetPasswordViewModel:ViewModel() {
     private val _resetPasswordStatus = MutableLiveData<AuthStatus>()

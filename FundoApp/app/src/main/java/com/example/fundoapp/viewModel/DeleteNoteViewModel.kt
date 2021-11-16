@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fundoapp.service.DBService
 import com.example.fundoapp.ui.MainActivity
-import com.example.fundoapp.util.NotesKey
+import com.example.fundoapp.service.model.NotesKey
 import kotlinx.coroutines.launch
 
 class DeleteNoteViewModel:ViewModel() {

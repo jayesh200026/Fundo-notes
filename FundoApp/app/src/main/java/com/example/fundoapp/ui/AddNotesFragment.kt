@@ -169,7 +169,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
 
     private fun deleteNote() {
         val context=requireContext()
-        val uid = sharedViewModel.getCurrentUid()
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
@@ -195,8 +194,13 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val uid = Authentication.getCurrentUid()
+        if(titleText!="" || noteText!=""){
+            if(uid!=null) {
+                addNoteViewModel.addNote(uid, titleText, noteText, context)
+            }
+        }
 
-        addNoteViewModel.addNote(uid, titleText, noteText, context)
+
     }
 
 

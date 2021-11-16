@@ -19,11 +19,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
-import com.example.fundoapp.util.NotesKey
-import com.example.fundoapp.util.TodoAdapter
-import com.example.fundoapp.util.TodoAdpaterLinear
+import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.viewModel.*
-import util.Utillity
+import com.example.fundoapp.util.Utillity
 
 
 class DeletedNoteFragment : Fragment() {
@@ -33,8 +31,9 @@ class DeletedNoteFragment : Fragment() {
     lateinit var searchview: SearchView
     lateinit var deleteBtn: ImageView
     lateinit var addNoteFAB: View
-    lateinit var adapter: TodoAdapter
-    lateinit var linearAdpater: TodoAdpaterLinear
+    lateinit var adapter: NoteAdapter
+
+    //lateinit var linearAdpater: NoteAdpaterLinear
     lateinit var gridrecyclerView: RecyclerView
     lateinit var deleteViewModel: DeleteNoteViewModel
     lateinit var sharedViewModel: SharedViewModel
@@ -45,7 +44,6 @@ class DeletedNoteFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_home, container, false)
         (requireActivity() as AppCompatActivity).supportActionBar?.show()
         deleteViewModel = ViewModelProvider(
@@ -66,8 +64,8 @@ class DeletedNoteFragment : Fragment() {
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
-        adapter = TodoAdapter(tempList)
-        linearAdpater = TodoAdpaterLinear(tempList)
+        adapter = NoteAdapter(tempList)
+        //linearAdpater = NoteAdpaterLinear(tempList)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addNoteFAB.isVisible = false
         toolbarHandling()
@@ -79,8 +77,8 @@ class DeletedNoteFragment : Fragment() {
                 requireContext(),
                 layout,
                 gridrecyclerView,
-                linearAdpater,
                 adapter
+
             )
         }
 
@@ -119,7 +117,7 @@ class DeletedNoteFragment : Fragment() {
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : TodoAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
             override fun onItemClick(position: Int) {
                 var alertDialog = AlertDialog.Builder(requireContext()).create()
 
@@ -151,20 +149,6 @@ class DeletedNoteFragment : Fragment() {
             }
 
         })
-
-        linearAdpater.setOnItemClickListner(object : TodoAdpaterLinear.onItemClickListner {
-            override fun onItemClick(position: Int) {
-                //setValuesForUpdation(position)
-                Toast.makeText(
-                    requireContext(),
-                    "You clicked item ${position + 1}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                //sharedViewModel.setGotoAddNotesPage(true)
-            }
-
-        })
-
     }
 
     private fun toolbarHandling() {

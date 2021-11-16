@@ -8,8 +8,8 @@ import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.google.firebase.auth.FirebaseAuth
 import com.example.fundoapp.service.Authentication
-import util.AuthStatus
-import util.FirebaseUserToken
+import com.example.fundoapp.util.AuthStatus
+import com.example.fundoapp.util.FirebaseUserToken
 import com.example.fundoapp.util.SharedPref
 import util.UserLoginResult
 

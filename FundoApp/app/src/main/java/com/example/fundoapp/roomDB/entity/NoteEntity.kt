@@ -1,4 +1,4 @@
-package com.example.fundoapp.roomdb.Entity
+package com.example.fundoapp.roomDB.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

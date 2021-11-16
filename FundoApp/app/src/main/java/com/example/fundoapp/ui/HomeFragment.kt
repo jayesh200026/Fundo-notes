@@ -23,17 +23,14 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
-import com.example.fundoapp.util.NotesKey
+import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.util.SharedPref
-import com.example.fundoapp.util.TodoAdapter
-import com.example.fundoapp.util.TodoAdpaterLinear
 import com.squareup.picasso.Picasso
-import com.example.fundoapp.viewModel.ProfileViewModel
-import com.example.fundoapp.viewModel.ProfileViewModelFactory
+import com.example.fundoapp.viewModel.HomeViewModel
+import com.example.fundoapp.viewModel.HomeViewModelFactory
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
-import util.Utillity
-import java.util.*
+import com.example.fundoapp.util.Utillity
 
 
 class HomeFragment : Fragment(), SearchView.OnCloseListener {
@@ -52,8 +49,9 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     lateinit var dialogClose: ImageView
     lateinit var getImage: ActivityResultLauncher<String>
     lateinit var addNoteFAB: View
-    lateinit var adapter: TodoAdapter
-    lateinit var linearAdpater: TodoAdpaterLinear
+    lateinit var adapter: NoteAdapter
+
+    //lateinit var linearAdpater: NoteAdpaterLinear
     lateinit var gridrecyclerView: RecyclerView
 
     var noteList = mutableListOf<NotesKey>()
@@ -61,7 +59,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
 
     private lateinit var sharedViewModel: SharedViewModel
-    private lateinit var profileViewModel: ProfileViewModel
+    private lateinit var profileViewModel: HomeViewModel
     var email: String? = null
     var fullName: String? = null
 
@@ -103,8 +101,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
         profileViewModel = ViewModelProvider(
             this,
-            ProfileViewModelFactory()
-        )[ProfileViewModel::class.java]
+            HomeViewModelFactory()
+        )[HomeViewModel::class.java]
     }
 
     private fun takePhoto() {
@@ -127,12 +125,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
-        adapter = TodoAdapter(tempList)
-        linearAdpater = TodoAdpaterLinear(tempList)
+        adapter = NoteAdapter(tempList)
+        //linearAdpater = NoteAdpaterLinear(tempList)
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : TodoAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
             override fun onItemClick(position: Int) {
 
                 setValuesForUpdation(position)
@@ -145,44 +143,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             }
 
         })
-
-        linearAdpater.setOnItemClickListner(object : TodoAdpaterLinear.onItemClickListner {
-            override fun onItemClick(position: Int) {
-                setValuesForUpdation(position)
-                Toast.makeText(
-                    requireContext(),
-                    "You clicked item ${position + 1}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                sharedViewModel.setGotoAddNotesPage(true)
-            }
-
-        })
-
-    }
-
-    private fun getNotesFromSql() {
-//        val db = DBHandler(requireContext())
-//        val userNotes = db.getNotes(sharedViewModel.getCurrentUid())
-//        tempList.clear()
-//        noteList.clear()
-//        noteList.addAll(userNotes)
-//        tempList.addAll(userNotes)
-//        gridrecyclerView.adapter?.notifyDataSetChanged()
-
-//        val uid=sharedViewModel.getCurrentUid()
-//        var userNotes=mutableListOf<Notes>()
-//
-//        val sqlNotes=MainActivity.roomDBClass.noteDao.readNotes(uid)
-//        for(i in sqlNotes){
-//            val note=Notes(i.title,i.note)
-//            userNotes.add(note)
-//        }
-//        tempList.clear()
-//        noteList.clear()
-//        noteList.addAll(userNotes)
-//        tempList.addAll(userNotes)
-//        gridrecyclerView.adapter?.notifyDataSetChanged()
 
     }
 
@@ -202,26 +162,9 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-
-                tempList.clear()
-
-                val searchTxt = newText!!.toLowerCase(Locale.getDefault())
-                if (searchTxt.isNotEmpty()) {
-                    noteList.forEach {
-                        if (it.title.toLowerCase(Locale.getDefault()).contains(searchTxt)) {
-                            tempList.add(it)
-                        }
-                    }
-                    gridrecyclerView.adapter!!.notifyDataSetChanged()
-                } else {
-                    tempList.clear()
-                    tempList.addAll(noteList)
-                    gridrecyclerView.adapter!!.notifyDataSetChanged()
-                }
-
+                adapter.filter.filter(newText)
                 return false
             }
-
         })
     }
 
@@ -230,7 +173,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         SharedPref.updateNotePosition("position", position + 1)
         SharedPref.addString("title", noteList[position].title)
         SharedPref.addString("note", noteList[position].note)
-        SharedPref.addString("key",noteList[position].key)
+        SharedPref.addString("key", noteList[position].key)
     }
 
     private fun getUserNotes() {
@@ -248,7 +191,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
-            gridrecyclerView.adapter = linearAdpater
+            gridrecyclerView.adapter = adapter
+            //gridrecyclerView.adapter = linearAdpater
             gridrecyclerView.isVisible = true
 
         } else if (count == "false") {
@@ -310,7 +254,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             tempList.clear()
             gridrecyclerView.isVisible = false
             for (i in 0..it.size - 1) {
-                if(!it[i].deleted) {
+                if (!it[i].deleted) {
                     noteList.add(it[i])
                 }
             }
@@ -325,8 +269,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             } else if (SharedPref.get("counter") == "true") {
                 gridrecyclerView.isVisible = false
                 gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
-                linearAdpater.notifyItemInserted(noteList.size - 1)
-                gridrecyclerView.adapter = linearAdpater
+//                linearAdpater.notifyItemInserted(noteList.size - 1)
+//                gridrecyclerView.adapter = linearAdpater
                 gridrecyclerView.isVisible = true
             } else if (SharedPref.get("counter") == "false") {
                 gridrecyclerView.isVisible = false
@@ -364,7 +308,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         }
 
         layout.setOnClickListener {
-            Utillity.loadNotesInLayoutType(requireContext(),layout,gridrecyclerView,linearAdpater,adapter)
+            Utillity.loadNotesInLayoutType(
+                requireContext(),
+                layout,
+                gridrecyclerView,
+                adapter
+            )
             //loadNotesInLayoutType()
         }
 
@@ -374,43 +323,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
     }
 
-
-    private fun loadNotesInLayoutType() {
-
-        var flag: Boolean
-        var count = SharedPref.get("counter")
-        if (count == "") {
-            flag = true
-        } else if (count == "true") {
-            flag = false
-        } else {
-            flag = true
-        }
-
-        if (flag) {
-            layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
-//            Toast.makeText(requireContext(), "linear notes will be loaded ", Toast.LENGTH_SHORT)
-//                .show()
-            gridrecyclerView.isVisible = false
-            gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
-            gridrecyclerView.adapter = linearAdpater
-            gridrecyclerView.isVisible = true
-            SharedPref.addString("counter", "true")
-
-        } else {
-            layout.setImageResource(R.drawable.ic_linear_24)
-//            Toast.makeText(requireContext(), "grid notes will be loaded ", Toast.LENGTH_SHORT)
-//                .show()
-            gridrecyclerView.isVisible = false
-            gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-            gridrecyclerView.adapter = adapter
-            gridrecyclerView.isVisible = true
-            SharedPref.addString("counter", "false")
-
-        }
-
-
-    }
 
     private fun initialiseDialog() {
         dialog = Dialog(requireContext())
@@ -461,10 +373,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     }
 
     private fun getUserDetails() {
-
         profileViewModel.readUserFRomDatabase()
-
-
     }
 
     override fun onClose(): Boolean {

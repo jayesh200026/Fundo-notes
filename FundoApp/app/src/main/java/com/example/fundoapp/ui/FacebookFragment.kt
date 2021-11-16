@@ -22,8 +22,7 @@ import com.facebook.CallbackManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserInfo
-import util.User
-
+import com.example.fundoapp.service.model.User
 
 
 class FacebookFragment : Fragment() {
@@ -43,7 +42,8 @@ class FacebookFragment : Fragment() {
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
 
-        loginViewModel=ViewModelProvider(this, LoginViewModelFactory())[LoginViewModel::class.java]
+        loginViewModel =
+            ViewModelProvider(this, LoginViewModelFactory())[LoginViewModel::class.java]
         var sharePref = requireActivity().getSharedPreferences("Mypref", Context.MODE_PRIVATE)
         var editor = sharePref.edit()
 
@@ -96,19 +96,18 @@ class FacebookFragment : Fragment() {
         if (user != null) {
             var name: String? = null
             var email: String? = null
-            var uid:String?=null
+            var uid: String? = null
 
 
             for (profile: UserInfo in user.providerData) {
                 name = profile.displayName
                 email = profile.email
-                uid=profile.uid
+                uid = profile.uid
 
             }
             val userObj = User(fullName = name, email = email)
-            sharedViewModel.addUserToDatabase(userObj,requireContext())
+            sharedViewModel.addUserToDatabase(userObj, requireContext())
 
-            //sharedViewModel.uploadProfile(uid,bitmap)
 
             sharedViewModel.databaseRegistrationStatus.observe(viewLifecycleOwner) {
                 if (it) {
@@ -123,24 +122,6 @@ class FacebookFragment : Fragment() {
                     sharedViewModel.setGoToLoginPageStatus(true)
                 }
             }
-
-//            sharedViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner){
-//                if(it){
-//                    Toast.makeText(
-//                        requireContext(), "Profile pic uploaded",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                    sharedViewModel.setGotoHomePageStatus(true)
-//                }
-//                else{
-//                    Toast.makeText(
-//                        requireContext(), "Profile pic uploading failed",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                    sharedViewModel.setGoToLoginPageStatus(true)
-//                }
-//            }
-
         }
     }
 

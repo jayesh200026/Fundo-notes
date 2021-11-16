@@ -1,4 +1,4 @@
-package util
+package com.example.fundoapp.util
 
 import android.content.Context
 import android.util.Patterns
@@ -9,9 +9,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
-import com.example.fundoapp.util.SharedPref
-import com.example.fundoapp.util.TodoAdapter
-import com.example.fundoapp.util.TodoAdpaterLinear
+import com.example.fundoapp.ui.NoteAdapter
 
 class Utillity{
     companion object{
@@ -64,7 +62,7 @@ class Utillity{
 
         }
 
-        fun loadNotesInLayoutType(context: Context, layout: ImageView, gridrecyclerView: RecyclerView, linearAdpater: TodoAdpaterLinear, adapter: TodoAdapter) {
+        fun loadNotesInLayoutType(context: Context, layout: ImageView, gridrecyclerView: RecyclerView,  adapter: NoteAdapter) {
             var flag: Boolean
             var count = SharedPref.get("counter")
             if (count == "") {
@@ -77,19 +75,15 @@ class Utillity{
 
             if (flag) {
                 layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
-//            Toast.makeText(requireContext(), "linear notes will be loaded ", Toast.LENGTH_SHORT)
-//                .show()
                 gridrecyclerView.isVisible = false
                 gridrecyclerView.layoutManager = LinearLayoutManager(context)
-                gridrecyclerView.adapter = linearAdpater
+                gridrecyclerView.adapter = adapter
                 gridrecyclerView.isVisible = true
                 SharedPref.addString("counter", "true")
 
             } else {
                 layout.setImageResource(R.drawable.ic_linear_24)
-//            Toast.makeText(requireContext(), "grid notes will be loaded ", Toast.LENGTH_SHORT)
-//                .show()
-                gridrecyclerView.isVisible = false
+                //gridrecyclerView.isVisible = false
                 gridrecyclerView.layoutManager = GridLayoutManager(context, 2)
                 gridrecyclerView.adapter = adapter
                 gridrecyclerView.isVisible = true

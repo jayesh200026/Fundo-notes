@@ -1,9 +1,9 @@
-package com.example.fundoapp.roomdb.Dao
+package com.example.fundoapp.roomDB.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.fundoapp.roomdb.Entity.NoteEntity
+import com.example.fundoapp.roomDB.entity.NoteEntity
 
 @Dao
 interface NoteDao {

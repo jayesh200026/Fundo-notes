@@ -1,8 +1,8 @@
-package com.example.fundoapp.roomdb.Dao
+package com.example.fundoapp.roomDB.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
-import com.example.fundoapp.roomdb.Entity.UserEntity
+import com.example.fundoapp.roomDB.entity.UserEntity
 
 @Dao
 interface UserDao {

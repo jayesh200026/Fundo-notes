@@ -9,5 +9,6 @@
     <string name="noteStoringFailed">database storing failed</string>
     <string name="noteUpdationFailed">updation failed</string>
     <string name="noteDeletionFailed">deletion failed</string>
+    <string name="invalidRemainder">Remainder can be set only for future</string>
 
 </resources>

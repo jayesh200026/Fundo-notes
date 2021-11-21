@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -24,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.util.Constants
 import com.example.fundoapp.util.SharedPref
 import com.squareup.picasso.Picasso
 import com.example.fundoapp.viewModel.HomeViewModel
@@ -31,6 +33,7 @@ import com.example.fundoapp.viewModel.HomeViewModelFactory
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
 import com.example.fundoapp.util.Utillity
+import com.google.android.material.navigation.NavigationView
 
 
 class HomeFragment : Fragment(), SearchView.OnCloseListener {
@@ -41,6 +44,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     lateinit var searchBar: TextView
     lateinit var searchview: SearchView
     lateinit var deleteBtn: ImageView
+    lateinit var remainder: ImageView
+    lateinit var archive: ImageView
     lateinit var dialogLogout: Button
     lateinit var dialogProfile: ImageView
     lateinit var dialogEdit: ImageView
@@ -50,6 +55,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     lateinit var getImage: ActivityResultLauncher<String>
     lateinit var addNoteFAB: View
     lateinit var adapter: NoteAdapter
+    lateinit var navMenu: NavigationView
 
     //lateinit var linearAdpater: NoteAdpaterLinear
     lateinit var gridrecyclerView: RecyclerView
@@ -93,6 +99,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         return view
     }
 
+
+
     private fun initializeViewModels() {
         sharedViewModel = ViewModelProvider(
             requireActivity(),
@@ -123,6 +131,9 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
+        remainder = requireActivity().findViewById(R.id.remainder)
+        archive = requireActivity().findViewById(R.id.archiveImage)
+        navMenu = requireActivity().findViewById(R.id.myNavMenu)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
         adapter = NoteAdapter(tempList)
@@ -174,6 +185,9 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         SharedPref.addString("title", noteList[position].title)
         SharedPref.addString("note", noteList[position].note)
         SharedPref.addString("key", noteList[position].key)
+        SharedPref.addString(Constants.IS_ARCHIVED,"false")
+        SharedPref.addBoolean(Constants.COLUMN_DELETED,noteList[position].deleted)
+        SharedPref.addBoolean(Constants.COLUMN_ARCHIVED,noteList[position].archived)
     }
 
     private fun getUserNotes() {
@@ -210,6 +224,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         searchBar.isVisible = true
         searchview.isVisible = true
         deleteBtn.isVisible = false
+        archive.isVisible = false
+        remainder.isVisible = false
         val toggle = ActionBarDrawerToggle(
             requireActivity(),
             requireActivity().findViewById(R.id.drawerLayout),
@@ -253,8 +269,8 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             noteList.clear()
             tempList.clear()
             gridrecyclerView.isVisible = false
-            for (i in 0..it.size - 1) {
-                if (!it[i].deleted) {
+            for (i in it.size-1 downTo 0) {
+                if (!it[i].deleted && !it[i].archived) {
                     noteList.add(it[i])
                 }
             }
@@ -283,6 +299,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
         }
 
+
     }
 
 
@@ -301,6 +318,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             SharedPref.clearAll()
             dialog.dismiss()
             sharedViewModel.logout()
+            profileViewModel.clearTables(requireContext())
             sharedViewModel.setGoToLoginPageStatus(true)
         }
         dialogClose.setOnClickListener {
@@ -318,6 +336,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         }
 
         addNoteFAB.setOnClickListener {
+            SharedPref.addString(Constants.IS_ARCHIVED,"")
             sharedViewModel.setGotoAddNotesPage(true)
         }
 

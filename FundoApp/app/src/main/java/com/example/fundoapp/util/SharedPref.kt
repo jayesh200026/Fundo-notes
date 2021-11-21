@@ -49,4 +49,12 @@ object SharedPref {
         editor.apply()
     }
 
+    fun addBoolean(key: String, value: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(key, value)
+        editor.apply()
+    }
+
+    fun getBoolean(key:String):Boolean = sharedPreferences.getBoolean(key,false)
+
 }

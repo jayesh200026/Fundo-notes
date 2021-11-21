@@ -8,6 +8,7 @@
         <entry key="app/src/main/res/drawable/custom_dialog_background.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.13333333333333333" />
         <entry key="app/src/main/res/drawable/ic_baseline_add_alert_24.xml" value="0.13333333333333333" />
+        <entry key="app/src/main/res/drawable/ic_baseline_edit_24.xml" value="0.10555555555555556" />
         <entry key="app/src/main/res/drawable/input_bg.xml" value="0.1265625" />
         <entry key="app/src/main/res/drawable/rounded_btn.xml" value="0.1675925925925926" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.165" />
@@ -15,20 +16,27 @@
         <entry key="app/src/main/res/layout/activity_profile.xml" value="0.125" />
         <entry key="app/src/main/res/layout/activity_registration.xml" value="0.165" />
         <entry key="app/src/main/res/layout/custom_dailogue.xml" value="0.335" />
+        <entry key="app/src/main/res/layout/display_labels.xml" value="0.45" />
+        <entry key="app/src/main/res/layout/fragment_add_label.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_add_notes.xml" value="0.24691358024691357" />
         <entry key="app/src/main/res/layout/fragment_dashboard.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_delete_note.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_deleted_note.xml" value="0.1265625" />
         <entry key="app/src/main/res/layout/fragment_facebook.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_google.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_home.xml" value="0.1743659420289855" />
         <entry key="app/src/main/res/layout/fragment_login.xml" value="0.165" />
+        <entry key="app/src/main/res/layout/fragment_new_label.xml" value="0.16757246376811594" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.20463320463320464" />
         <entry key="app/src/main/res/layout/fragment_registration.xml" value="0.125" />
+        <entry key="app/src/main/res/layout/fragment_remainder.xml" value="0.15715579710144928" />
         <entry key="app/src/main/res/layout/fragment_reset_password.xml" value="0.165" />
         <entry key="app/src/main/res/layout/fragment_splash.xml" value="0.10157041540020263" />
         <entry key="app/src/main/res/layout/grid_layout.xml" value="0.125" />
         <entry key="app/src/main/res/layout/linear_layout.xml" value="0.29393939393939394" />
         <entry key="app/src/main/res/layout/navigation_header.xml" value="0.165" />
+        <entry key="app/src/main/res/layout/remainder_note.xml" value="0.13645833333333332" />
+        <entry key="app/src/main/res/layout/rv_label.xml" value="0.1" />
         <entry key="app/src/main/res/menu/nav_menu.xml" value="0.165" />
       </map>
     </option>

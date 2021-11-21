@@ -4,10 +4,12 @@
     <group android:checkableBehavior="single"
         android:id="@+id/group1">
         <item
+            android:orderInCategory="0"
             android:id="@+id/menuNotes"
             android:icon="@drawable/ic_baseline_note_24"
             android:title="Notes" />
         <item
+            android:orderInCategory="0"
             android:id="@+id/menuReminder"
             android:icon="@drawable/ic_baseline_add_alert_24"
             android:title="Reminder" />
@@ -15,20 +17,28 @@
     <group android:checkableBehavior="single"
     android:id="@+id/group2">
         <item
+            android:orderInCategory="1"
             android:id="@+id/menuAddNotes"
             android:icon="@drawable/ic_baseline_note_add_24"
-            android:title="Add Notes" />
+            android:title="Create new label" />
     </group>
     <group android:checkableBehavior="single"
         android:id="@+id/group3">
         <item
+            android:orderInCategory="2"
             android:id="@+id/menuDeleted"
             android:icon="@drawable/ic_baseline_delete_24"
-            android:title="Deleted" />
+            android:title="Trash" />
+        <item
+            android:orderInCategory="2"
+            android:id="@+id/menuArchives"
+            android:icon="@drawable/ic_baseline_archive_24"
+            android:title="Archived Notes"/>
     </group>
     <group android:checkableBehavior="single"
         android:id="@+id/group4">
         <item
+            android:orderInCategory="3"
             android:id="@+id/menuSettings"
             android:icon="@drawable/ic_baseline_settings_24"
             android:title="Settings" />

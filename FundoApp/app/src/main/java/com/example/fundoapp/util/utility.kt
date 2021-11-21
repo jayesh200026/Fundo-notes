@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.ui.NoteAdapter
+import com.example.fundoapp.ui.RemainderAdapter
 
 class Utillity{
     companion object{
@@ -60,6 +61,36 @@ class Utillity{
             }
             return true
 
+        }
+
+        fun loadRemainderNotesInLayout(context: Context, layout: ImageView, gridrecyclerView: RecyclerView,  adapter: RemainderAdapter){
+            var flag: Boolean
+            var count = SharedPref.get("counter")
+            if (count == "") {
+                flag = true
+            } else if (count == "true") {
+                flag = false
+            } else {
+                flag = true
+            }
+
+            if (flag) {
+                layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
+                gridrecyclerView.isVisible = false
+                gridrecyclerView.layoutManager = LinearLayoutManager(context)
+                gridrecyclerView.adapter = adapter
+                gridrecyclerView.isVisible = true
+                SharedPref.addString("counter", "true")
+
+            } else {
+                layout.setImageResource(R.drawable.ic_linear_24)
+                //gridrecyclerView.isVisible = false
+                gridrecyclerView.layoutManager = GridLayoutManager(context, 2)
+                gridrecyclerView.adapter = adapter
+                gridrecyclerView.isVisible = true
+                SharedPref.addString("counter", "false")
+
+            }
         }
 
         fun loadNotesInLayoutType(context: Context, layout: ImageView, gridrecyclerView: RecyclerView,  adapter: NoteAdapter) {

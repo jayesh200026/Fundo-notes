@@ -63,6 +63,7 @@ open class LoginFragment : Fragment(), View.OnClickListener {
                     it.message,
                     Toast.LENGTH_LONG
                 ).show()
+                loginViewModel.fillRoomdB(requireContext())
                 sharedViewModel.setGotoHomePageStatus(true)
             } else {
                 Toast.makeText(

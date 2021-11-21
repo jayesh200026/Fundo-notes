@@ -6,10 +6,11 @@ import android.net.Network
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -68,13 +69,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
         observeNavigation()
-        val loggedIn = checkIfLoggedIn()
-        if (loggedIn) {
-            gotoHomePage()
-        } else {
+//        val loggedIn = checkIfLoggedIn()
+//        if (loggedIn) {
+//            gotoHomePage()
+//        } else {
+//            gotoSplashScreen()
+//        }
+        if(savedInstanceState == null){
             gotoSplashScreen()
         }
         worker()
+
     }
 
 
@@ -130,6 +135,63 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     gotoDeletedNotePage()
                 }
             })
+        sharedViewModel.gotoLabelPageStatus.observe(this@MainActivity,
+            {
+                if (it) {
+                    Log.d("label","going to label page")
+                    gotoLabelPage()
+                }
+            })
+
+        sharedViewModel.gotoAddLablesPageStatus.observe(this@MainActivity,
+            {
+                if(it){
+                    gotoAddLabelPage()
+                }
+            })
+        sharedViewModel.gotoArchivedNotesPageStatus.observe(this@MainActivity,
+            {
+                if(it){
+                    gotoArchivedNotesPage()
+                }
+            })
+
+        sharedViewModel.gotoRemainderPageStatus.observe(this@MainActivity,
+            {
+                if(it){
+                    gotoRemainderPage()
+                }
+            })
+
+
+    }
+
+    private fun gotoRemainderPage() {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flFragment, RemainderFragment())
+            commit()
+        }
+    }
+
+    private fun gotoArchivedNotesPage() {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flFragment, ArchivedNotesFragment())
+            commit()
+        }
+    }
+
+    private fun gotoAddLabelPage() {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flFragment, AddLabelFragment())
+            commit()
+        }
+    }
+
+    private fun gotoLabelPage() {
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flFragment, CreateLabelFragment())
+            commit()
+        }
     }
 
 
@@ -160,6 +222,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun gotoLoginPage() {
         supportFragmentManager.beginTransaction().apply {
             replace(R.id.flFragment, LoginFragment())
+            //addToBackStack(null)
             commit()
         }
 
@@ -168,6 +231,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun gotoRegistrationPage() {
         supportFragmentManager.beginTransaction().apply {
             replace(R.id.flFragment, RegistrationFragment())
+            addToBackStack(null)
             commit()
         }
     }
@@ -199,11 +263,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawerLayout.closeDrawer(GravityCompat.START)
         when (item.itemId) {
             R.id.menuAddNotes -> {
-
+                Log.d("label","clicked create label")
+                    sharedViewModel.setGotoLabelPageStatus(true)
             }
             R.id.menuReminder -> {
-                Toast.makeText(applicationContext, "Clicked reminder menu", Toast.LENGTH_LONG)
-                    .show()
+                sharedViewModel.setGotoRemainderPageStatus(true)
             }
             R.id.menuSettings -> {
                 Toast.makeText(applicationContext, "Clicked settings menu", Toast.LENGTH_LONG)
@@ -214,6 +278,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             R.id.menuDeleted -> {
                 sharedViewModel.setGoToDeletedNotePageStatus(true)
+            }
+            R.id.menuArchives -> {
+                sharedViewModel.setGotoArchivedNotesPageStatus(true)
             }
         }
         return true
@@ -265,8 +332,5 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             })
         }
-
     }
-
-
 }

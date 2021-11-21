@@ -1,4 +1,4 @@
-package com.example.fundoapp.roomDB.entity
+package com.example.fundoapp.roomdb.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -7,13 +7,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "Notes")
 data class NoteEntity(
 
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo
-    val nid: Long = 0L,
-
     @ColumnInfo
     val uid: String,
 
+    @PrimaryKey
     @ColumnInfo(name = "fid")
     val fid: String,
 
@@ -26,8 +23,18 @@ data class NoteEntity(
     @ColumnInfo(name="deleted")
     val deleted:Boolean=false,
 
+    @ColumnInfo(name="archived")
+    val archived:Boolean=false,
+
     @ColumnInfo(name="modifiedTime")
-    val modifiedTime:String
+    val modifiedTime:String,
+
+    @ColumnInfo(name="Permanently_Deleted")
+    val deletedForever:Boolean=false,
+
+    @ColumnInfo(name="Remainder")
+    val remainder:Long=0L
+
 
 
 

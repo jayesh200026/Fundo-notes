@@ -30,10 +30,9 @@ class DeletedNoteFragment : Fragment() {
     lateinit var searchBar: TextView
     lateinit var searchview: SearchView
     lateinit var deleteBtn: ImageView
+    lateinit var archive: ImageView
     lateinit var addNoteFAB: View
     lateinit var adapter: NoteAdapter
-
-    //lateinit var linearAdpater: NoteAdpaterLinear
     lateinit var gridrecyclerView: RecyclerView
     lateinit var deleteViewModel: DeleteNoteViewModel
     lateinit var sharedViewModel: SharedViewModel
@@ -64,8 +63,8 @@ class DeletedNoteFragment : Fragment() {
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
+        archive=requireActivity().findViewById(R.id.archiveImage)
         adapter = NoteAdapter(tempList)
-        //linearAdpater = NoteAdpaterLinear(tempList)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addNoteFAB.isVisible = false
         toolbarHandling()
@@ -157,6 +156,7 @@ class DeletedNoteFragment : Fragment() {
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
+        archive.isVisible = false
         val toggle = ActionBarDrawerToggle(
             requireActivity(),
             requireActivity().findViewById(R.id.drawerLayout),

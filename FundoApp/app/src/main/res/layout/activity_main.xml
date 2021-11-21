@@ -42,14 +42,15 @@
 
                 <ImageView
                     android:id="@+id/deleteButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.867"
+                    app:layout_constraintHorizontal_bias="0.83"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.483"
+                    android:visibility="gone"
                     app:srcCompat="@drawable/ic_baseline_delete_24"
                     tools:ignore="VectorDrawableCompat" />
 
@@ -67,6 +68,18 @@
                     app:layout_constraintTop_toTopOf="parent">
 
                 </TextView>
+
+                <ImageView
+                    android:id="@+id/archiveImage"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:visibility="invisible"
+                    android:src="@drawable/ic_baseline_archive_24"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.91"
+                    app:layout_constraintStart_toEndOf="@+id/searchNotes"
+                    app:layout_constraintTop_toTopOf="parent"/>
 
                 <ImageView
                     android:id="@+id/userProfile"
@@ -90,30 +103,33 @@
                     app:layout_constraintVertical_bias="0.222"
                     app:srcCompat="@drawable/ic_linear_24" />
 
-              <!--  <androidx.appcompat.widget.SearchView
-                    android:id="@+id/searchView"
-                    android:layout_width="234dp"
-                    android:layout_height="31dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="12dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="search node"/>
 
-                </androidx.appcompat.widget.SearchView>-->
+                <ImageView
+                    android:id="@+id/remainder"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_baseline_add_alert_24_white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/searchNotes"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintHorizontal_bias="0.535"
+                    app:layout_constraintVertical_bias="0.515"
+                    android:visibility="gone"
+                    />
 
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     >
+
                     <androidx.appcompat.widget.SearchView
                         android:id="@+id/searchView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        />
+                        >
+
+                    </androidx.appcompat.widget.SearchView>
                 </FrameLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>

@@ -17,31 +17,34 @@ import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.service.model.User
 import java.lang.Exception
 
-class HomeViewModel:ViewModel(){
-    private val _profilePhotoFetch= MutableLiveData<Uri>()
-    val profilePhotoFetch=_profilePhotoFetch as LiveData<Uri>
+class HomeViewModel : ViewModel() {
+    private val _profilePhotoFetch = MutableLiveData<Uri>()
+    val profilePhotoFetch = _profilePhotoFetch as LiveData<Uri>
 
-    private val _profilePhotoUploadStatus=MutableLiveData<Boolean>()
+    private val _profilePhotoUploadStatus = MutableLiveData<Boolean>()
     val profilePhotoUploadStatus = _profilePhotoUploadStatus as LiveData<Boolean>
 
     private val _databaseReadingStatus = MutableLiveData<User>()
     val databaseReadingStatus = _databaseReadingStatus as LiveData<User>
 
     private val _readNotesFromDatabaseStatus = MutableLiveData<MutableList<NotesKey>>()
-    var readNotesFromDatabaseStatus=_readNotesFromDatabaseStatus as LiveData<MutableList<NotesKey>>
+    var readNotesFromDatabaseStatus =
+        _readNotesFromDatabaseStatus as LiveData<MutableList<NotesKey>>
+
+
 
     fun fetchProfile() {
         try {
             FirebaseStorage.fetchPhoto(Authentication.getCurrentUid()) { status, uri ->
                 _profilePhotoFetch.value = uri
             }
-        }
-        catch (e: Exception){
+        } catch (e: Exception) {
         }
     }
+
     fun uploadProfile(uid: String?, imageUri: Uri) {
-        FirebaseStorage.uploadImage(uid,imageUri){
-            _profilePhotoUploadStatus.value=it
+        FirebaseStorage.uploadImage(uid, imageUri) {
+            _profilePhotoUploadStatus.value = it
         }
     }
 
@@ -51,14 +54,23 @@ class HomeViewModel:ViewModel(){
         }
     }
 
-    fun readNotesFromDatabase(context:Context){
+    fun readNotesFromDatabase(context: Context) {
         viewModelScope.launch {
-            val dbService= DBService(MainActivity.roomDBClass,context)
-            val noteList=dbService.readNotes()
-            Log.d("listsize",noteList.size.toString())
-            _readNotesFromDatabaseStatus.value=noteList
+            val dbService = DBService(MainActivity.roomDBClass, context)
+            val noteList = dbService.readNotes()
+            Log.d("listsize", noteList.size.toString())
+            _readNotesFromDatabaseStatus.value = noteList
         }
 
     }
+
+    fun clearTables(context: Context) {
+        viewModelScope.launch {
+            val dbService = DBService(MainActivity.roomDBClass, context)
+            dbService.clearTables()
+        }
+
+    }
+
 
 }

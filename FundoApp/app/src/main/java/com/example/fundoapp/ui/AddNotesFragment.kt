@@ -1,5 +1,7 @@
 package com.example.fundoapp.ui
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -13,14 +15,20 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.fundoapp.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.example.fundoapp.service.Authentication
+import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.util.Constants
 import com.example.fundoapp.util.SharedPref
 import com.example.fundoapp.viewModel.AddNoteViewModel
 import com.example.fundoapp.viewModel.AddNoteViewModelFactory
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
+import java.text.SimpleDateFormat
+import java.util.*
 
+private const val DATE_FORMAT = "dd/MM/yy hh:mm"
 
-class AddNotesFragment : Fragment(), View.OnClickListener {
+class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDateSetListener,
+    TimePickerDialog.OnTimeSetListener {
 
     lateinit var toolbar: Toolbar
     lateinit var userIcon: ImageView
@@ -28,12 +36,28 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
     lateinit var searchBar: TextView
     lateinit var searchview: SearchView
     lateinit var deleteBtn: ImageView
+    lateinit var remainder: ImageView
+    lateinit var archive: ImageView
     lateinit var title: EditText
     lateinit var note: EditText
     lateinit var savetext: TextView
     lateinit var saveBtn: FloatingActionButton
     private lateinit var sharedViewModel: SharedViewModel
     lateinit var addNoteViewModel: AddNoteViewModel
+
+
+
+    var day = 0
+    var year = 0
+    var month = 0
+    var hour = 0
+    var minute = 0
+
+    var savedDay = 0
+    var savedYear = 0
+    var savedMonth = 0
+    var savedHour = 0
+    var savedMinute = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,6 +86,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
     private fun checkIfUpdate() {
         val updateStatus = SharedPref.getUpdateStatus("updateStatus")
         if (updateStatus) {
+            remainder.isVisible = true
             deleteBtn.isVisible = true
             updateNote()
         }
@@ -71,6 +96,9 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         saveBtn.setOnClickListener(this)
         savetext.setOnClickListener(this)
         deleteBtn.setOnClickListener(this)
+
+        archive.setOnClickListener(this)
+        remainder.setOnClickListener(this)
     }
 
     private fun handleToolbar() {
@@ -79,9 +107,21 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
+        archive.isVisible = false
+
+        if (SharedPref.get(Constants.IS_ARCHIVED) == "true") {
+            archive.setImageResource(R.drawable.ic_baseline_unarchive_24)
+            archive.isVisible = true
+        } else if (SharedPref.get(Constants.IS_ARCHIVED) == "false") {
+            archive.setImageResource(R.drawable.ic_baseline_archive_24)
+            archive.isVisible = true
+        }
+
+
 
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
+            SharedPref.setUpdateStatus("updateStatus", false)
             activity?.onBackPressed()
         }
     }
@@ -92,12 +132,13 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
+        archive = requireActivity().findViewById(R.id.archiveImage)
+        remainder = requireActivity().findViewById(R.id.remainder)
         title = view.findViewById(R.id.noteTitle)
         note = view.findViewById(R.id.userNote)
         saveBtn = view.findViewById(R.id.saveFAB)
         savetext = view.findViewById(R.id.saveText)
         toolbar = requireActivity().findViewById(R.id.myToolbar)
-
     }
 
     private fun updateNote() {
@@ -105,8 +146,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         val noteContent = SharedPref.get("note")
         title.setText(noteTitle)
         note.setText(noteContent)
-
-
     }
 
     private fun observe() {
@@ -149,6 +188,24 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
 
             }
         }
+        addNoteViewModel.archivedStatus.observe(viewLifecycleOwner) {
+            SharedPref.setUpdateStatus("updateStatus", false)
+            if (it) {
+                sharedViewModel.setGotoHomePageStatus(true)
+            }
+        }
+        addNoteViewModel.unArchivedStatus.observe(viewLifecycleOwner) {
+            SharedPref.setUpdateStatus("updateStatus", false)
+            if (it) {
+                sharedViewModel.setGotoHomePageStatus(true)
+            }
+        }
+        addNoteViewModel.remainderStatus.observe(viewLifecycleOwner) {
+            SharedPref.setUpdateStatus("updateStatus", false)
+            if (it) {
+                sharedViewModel.setGotoHomePageStatus(true)
+            }
+        }
     }
 
 
@@ -164,20 +221,48 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
             R.id.deleteButton -> {
                 deleteNote()
             }
+            R.id.archiveImage -> {
+                if (SharedPref.get(Constants.IS_ARCHIVED) == "false") {
+                    archiveNote()
+                } else if (SharedPref.get(Constants.IS_ARCHIVED) == "true") {
+                    unarchive()
+                }
+            }
+            R.id.remainder -> {
+                pickDate()
+            }
         }
     }
 
-    private fun deleteNote() {
-        val context=requireContext()
+
+    private fun unarchive() {
+        val context = requireContext()
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
-           addNoteViewModel.deleteNote(titleText,noteText,key!!,context)
-
+            addNoteViewModel.unArchiveNote(titleText, noteText, key!!, context)
         }
+    }
 
+    private fun archiveNote() {
+        val context = requireContext()
+        val titleText = title.text.toString()
+        val noteText = note.text.toString()
+        val key = SharedPref.get("key")
+        if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
+            addNoteViewModel.archiveNote(titleText, noteText, key!!, context)
+        }
+    }
 
+    private fun deleteNote() {
+        val context = requireContext()
+        val titleText = title.text.toString()
+        val noteText = note.text.toString()
+        val key = SharedPref.get("key")
+        if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
+            addNoteViewModel.deleteNote(titleText, noteText, key!!, context)
+        }
     }
 
     private fun updateNoteToDatabase() {
@@ -186,7 +271,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
         addNoteViewModel.updateNote(key!!, titleText, noteText, context)
-
     }
 
     private fun storeToDatabase() {
@@ -194,14 +278,66 @@ class AddNotesFragment : Fragment(), View.OnClickListener {
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val uid = Authentication.getCurrentUid()
-        if(titleText!="" || noteText!=""){
-            if(uid!=null) {
+        if (titleText != "" || noteText != "") {
+            if (uid != null) {
                 addNoteViewModel.addNote(uid, titleText, noteText, context)
             }
         }
-
-
     }
 
+    private fun pickDate() {
+        getDateTimeCalender()
+        DatePickerDialog(requireContext(), this, year, month, day).show()
+    }
 
+    override fun onDateSet(p0: DatePicker?, year: Int, month: Int, day: Int) {
+        savedDay = day
+        savedMonth = month
+        savedYear = year
+        getDateTimeCalender()
+        TimePickerDialog(requireContext(), this, hour, minute, false).show()
+    }
+
+    override fun onTimeSet(p0: TimePicker?, hour: Int, minute: Int) {
+        savedHour = hour
+        savedMinute = minute
+
+        val cal = Calendar.getInstance()
+        cal.set(savedYear, savedMonth, savedDay, savedHour, savedMinute, 0)
+        val timeInMilli = cal.timeInMillis
+        val date = millisToDate(timeInMilli)
+
+        if (timeInMilli > System.currentTimeMillis()) {
+            addRemainder(timeInMilli)
+        }
+        else{
+            Toast.makeText(requireContext(),R.string.invalidRemainder,Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun addRemainder(timeInMilli: Long) {
+        val context = requireContext()
+        val titleText = title.text.toString()
+        val noteText = note.text.toString()
+        val key = SharedPref.get("key")
+        val deleted = SharedPref.getBoolean(Constants.COLUMN_DELETED)
+        val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
+        val note = NotesKey(titleText, noteText, key!!, deleted, archived, "")
+        if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
+            addNoteViewModel.addRemainder(note, context, timeInMilli)
+        }
+    }
+
+    private fun getDateTimeCalender() {
+        val calender = Calendar.getInstance()
+        year = calender.get(Calendar.YEAR)
+        month = calender.get(Calendar.MONTH)
+        day = calender.get(Calendar.DAY_OF_MONTH)
+        hour = calender.get(Calendar.HOUR)
+        minute = calender.get(Calendar.MINUTE)
+    }
+
+    private fun millisToDate(millis: Long): String {
+        return SimpleDateFormat(DATE_FORMAT, Locale.US).format(Date(millis))
+    }
 }

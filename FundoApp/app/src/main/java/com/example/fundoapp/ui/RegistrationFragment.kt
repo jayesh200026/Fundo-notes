@@ -59,7 +59,8 @@ class RegistrationFragment : Fragment(), View.OnClickListener {
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.registrationLogin -> {
-                sharedViewModel.setGoToLoginPageStatus(true)
+                //sharedViewModel.setGoToLoginPageStatus(true)
+                activity?.supportFragmentManager?.popBackStack()
             }
             R.id.register -> {
                 registerUser(view)

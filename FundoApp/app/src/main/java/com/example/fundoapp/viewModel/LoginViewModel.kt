@@ -1,16 +1,21 @@
 package com.example.fundoapp.viewModel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.fundoapp.ui.FacebookFragment
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.google.firebase.auth.FirebaseAuth
 import com.example.fundoapp.service.Authentication
+import com.example.fundoapp.service.DBService
+import com.example.fundoapp.ui.MainActivity
 import com.example.fundoapp.util.AuthStatus
 import com.example.fundoapp.util.FirebaseUserToken
 import com.example.fundoapp.util.SharedPref
+import kotlinx.coroutines.launch
 import util.UserLoginResult
 
 class LoginViewModel:ViewModel(){
@@ -54,5 +59,14 @@ class LoginViewModel:ViewModel(){
                 SharedPref.addString("email",email)
             }
         }
+    }
+
+    fun fillRoomdB(context: Context) {
+        viewModelScope.launch {
+            val dbService=DBService(MainActivity.roomDBClass,context)
+            dbService.fillToRoomDB()
+
+        }
+
     }
 }

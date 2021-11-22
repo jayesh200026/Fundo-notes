@@ -38,35 +38,35 @@ class AddNoteViewModel : ViewModel() {
     }
 
 
-    fun updateNote(key: String, title: String, note: String, context: Context) {
+    fun updateNote(note : NotesKey, context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
-            val status = dbService.updateNote(key, title, note, context)
+            val status = dbService.updateNote(note, context)
             _databaseNoteUpdateStatus.value = status
         }
     }
 
-    fun deleteNote(title: String, note: String, key: String, context: Context) {
+    fun deleteNote(note : NotesKey, context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
-            val status = dbService.deleteNote(title, note, key)
+            val status = dbService.deleteNote(note)
             _databaseNoteDeletionStatus.value = status
         }
     }
 
-    fun archiveNote(titleText: String, noteText: String, key: String, context: Context) {
+    fun archiveNote(note : NotesKey, context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
-            val status=dbService.archiveNote(titleText,noteText,key)
+            val status=dbService.archiveNote(note)
             _archivedStatus.value=status
         }
 
     }
 
-    fun unArchiveNote(title: String, note: String, key: String, context: Context) {
+    fun unArchiveNote(note : NotesKey,context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
-            val status=dbService.unArchive(title,note,key)
+            val status=dbService.unArchive(note)
             _unArchivedStatus.value=status
         }
 

@@ -31,6 +31,10 @@ class HomeViewModel : ViewModel() {
     var readNotesFromDatabaseStatus =
         _readNotesFromDatabaseStatus as LiveData<MutableList<NotesKey>>
 
+    private val _readNotesStatus = MutableLiveData<MutableList<NotesKey>>()
+    var readNotesStatus =
+        _readNotesStatus as LiveData<MutableList<NotesKey>>
+
 
 
     fun fetchProfile() {
@@ -68,6 +72,15 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
             dbService.clearTables()
+        }
+
+    }
+
+    fun readNotes(key: String,context: Context) {
+        viewModelScope.launch {
+            val dbService = DBService(MainActivity.roomDBClass, context)
+            val list = dbService.readLimitedNotes(key)
+            _readNotesStatus.value = list
         }
 
     }

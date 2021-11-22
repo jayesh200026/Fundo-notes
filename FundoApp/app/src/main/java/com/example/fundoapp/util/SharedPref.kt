@@ -55,6 +55,17 @@ object SharedPref {
         editor.apply()
     }
 
+    fun addRemainder(key : String, value : Long)
+    {
+        val editor = sharedPreferences.edit()
+        editor.putLong(key, value)
+        editor.apply()
+    }
+
+    fun getRemainder(key : String):Long = sharedPreferences.getLong(key ,0L)
+
     fun getBoolean(key:String):Boolean = sharedPreferences.getBoolean(key,false)
+
+
 
 }

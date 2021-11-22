@@ -32,10 +32,10 @@ class DeleteNoteViewModel:ViewModel() {
 
     }
 
-    fun restoreNote(context: Context, title: String, note: String, key: String) {
+    fun restoreNote(context: Context, note : NotesKey) {
         viewModelScope.launch {
             val dbService= DBService(MainActivity.roomDBClass,context)
-            val status=dbService.restoreNote(title,note,key)
+            val status=dbService.restoreNote(note)
             _restoreNoteStatus.value=status
         }
 

@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/drawable/ic_baseline_add_alert_24.xml" value="0.13333333333333333" />
         <entry key="app/src/main/res/drawable/ic_baseline_edit_24.xml" value="0.10555555555555556" />
         <entry key="app/src/main/res/drawable/input_bg.xml" value="0.1265625" />
+        <entry key="app/src/main/res/drawable/remainder_bg.xml" value="0.15555555555555556" />
         <entry key="app/src/main/res/drawable/rounded_btn.xml" value="0.1675925925925926" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.165" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.21481481481481482" />

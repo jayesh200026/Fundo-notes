@@ -7,10 +7,8 @@ import com.example.fundoapp.service.Authentication
 import com.example.fundoapp.service.model.*
 import com.example.fundoapp.util.Constants
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.internal.resumeCancellableWith
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -369,6 +367,79 @@ class FirebaseDatabase {
 
                 }
             }
+        }
+
+        suspend fun readLimitedNotes(key : String):MutableList<NotesKey>{
+            val list = mutableListOf<NotesKey>()
+            val query = getQuery(key)
+            Log.d("Limited",query.toString())
+            return suspendCancellableCoroutine {cont ->
+                query.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(it: DataSnapshot) {
+                        if (it.exists()) {
+
+                            for (i in it.children) {
+                                val title = i.child(Constants.COLUMN_TITLE).value.toString()
+                                val note = i.child(Constants.COLUMN_NOTE).value.toString()
+                                val key = i.key
+                                val deleted = i.child(Constants.COLUMN_DELETED).value
+                                val archived =
+                                    i.child(Constants.COLUMN_ARCHIVED).value == true
+                                val deletedStatus = deleted == true
+                                val mTime =
+                                    i.child(Constants.COLUMN_MODIFIEDTIME).value.toString()
+                                val remainder =
+                                    i.child(Constants.COLUMN_REMAINDER).value.toString()
+                                val userNote =
+                                    NotesKey(
+                                        title,
+                                        note,
+                                        key!!,
+                                        deletedStatus,
+                                        archived,
+                                        mTime,
+                                        remainder.toLong()
+                                    )
+                                list.add(userNote)
+                            }
+                            if(cont.isActive) {
+                                cont.resumeWith(Result.success(list))
+                            }
+                            else{
+                                Log.d("Limited","cont is not active")
+                            }
+                        }
+                        else{
+                            cont.resumeWith(Result.success(mutableListOf<NotesKey>()))
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+
+                    }
+
+                })
+            }
+        }
+
+        suspend fun getQuery(key : String):Query{
+            val reference= FirebaseDatabase.getInstance().getReference(Constants.NOTES_TABLE)
+            val uid = Authentication.getCurrentUid()
+            return suspendCoroutine {cont->
+                if(uid!=null){
+                    if(key == ""){
+                         cont.resumeWith(Result.success(reference.child(uid)
+                             .orderByChild(Constants.COLUMN_MODIFIEDTIME).limitToLast(10)))
+                    }
+                    else{
+                        Log.d("limited","inside else")
+                        cont.resumeWith(Result.success(reference.child(uid).orderByChild(Constants.COLUMN_MODIFIEDTIME)
+                            .endBefore(key).limitToLast(10)))
+                    }
+                }
+            }
+
+
         }
     }
 }

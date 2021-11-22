@@ -126,9 +126,11 @@ class DeletedNoteFragment : Fragment() {
 
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Restore",
                     DialogInterface.OnClickListener { dialog, id ->
+                        val userNote = NotesKey(title = noteList[position].title,note = noteList[position].note,
+                        key = noteList[position].key,deleted = noteList[position].deleted,archived = noteList[position].archived,
+                        mTime = noteList[position].mTime,remainder = noteList[position].remainder)
                         deleteViewModel.restoreNote(
-                            requireContext(), noteList[position].title,
-                            noteList[position].note, noteList[position].key
+                            requireContext(),userNote
                         )
                         Toast.makeText(requireContext(), "Restore", Toast.LENGTH_SHORT).show()
                     })

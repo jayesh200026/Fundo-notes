@@ -24,7 +24,26 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#000000">
+            android:background="#E9DFD3">
+
+            <TextView
+                android:id="@+id/gridRemainder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginBottom="10dp"
+                android:padding="10dp"
+                android:text=""
+                android:background="@drawable/remainder_bg"
+                android:drawableLeft="@drawable/ic_baseline_alarm_24"
+                android:textColor="@color/black"
+                app:layout_constraintTop_toBottomOf="@id/gridNote"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintVertical_bias="1.0"
+                />
 
             <TextView
                 android:id="@+id/gridTitle"
@@ -33,7 +52,7 @@
                 android:layout_marginTop="10dp"
                 android:padding="10dp"
                 android:text="TextView"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -48,7 +67,7 @@
                 android:layout_marginTop="10dp"
                 android:padding="10dp"
                 android:text="TextView"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="15sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"

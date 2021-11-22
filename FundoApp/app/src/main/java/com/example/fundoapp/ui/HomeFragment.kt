@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -56,12 +55,19 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     lateinit var addNoteFAB: View
     lateinit var adapter: NoteAdapter
     lateinit var navMenu: NavigationView
+    lateinit var progressBar: ProgressBar
 
     //lateinit var linearAdpater: NoteAdpaterLinear
     lateinit var gridrecyclerView: RecyclerView
 
     var noteList = mutableListOf<NotesKey>()
     var tempList = mutableListOf<NotesKey>()
+
+    var startTime = ""
+    var isLoading = false
+    var currentItem: Int = 0
+    var totalItem: Int = 0
+    var scrolledOutItems: Int = 0
 
 
     private lateinit var sharedViewModel: SharedViewModel
@@ -85,20 +91,60 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         toolbarHandling()
         observe()
         getUserDetails()
-
-        getUserNotes()
-        //getNotesFromSql()
+        readNotes()
         loadAvatar(userIcon)
         initialiseDialog()
         checkLayout()
         takePhoto()
         onClickListeners()
+
         searchNote()
+
         searchview.setOnCloseListener(this)
+
+        gridrecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (SharedPref.get(Constants.LAYOUT) == "" ||
+                    SharedPref.get(Constants.LAYOUT) == Constants.GRID
+                ) {
+                    currentItem = (gridrecyclerView.layoutManager as GridLayoutManager).childCount
+                    totalItem = (gridrecyclerView.layoutManager as GridLayoutManager).itemCount
+                    scrolledOutItems = (gridrecyclerView.layoutManager as GridLayoutManager)
+                        .findFirstVisibleItemPosition()
+                    if (!isLoading) {
+                        if ((currentItem + scrolledOutItems) >= totalItem && scrolledOutItems >= 0) {
+                            isLoading = true
+                            progressBar.visibility = View.VISIBLE
+                            readNotes()
+                        }
+                    }
+
+                } else if (SharedPref.get(Constants.LAYOUT) == Constants.LINEAR) {
+                    currentItem = (gridrecyclerView.layoutManager as LinearLayoutManager).childCount
+                    totalItem = (gridrecyclerView.layoutManager as LinearLayoutManager).itemCount
+                    scrolledOutItems = (gridrecyclerView.layoutManager as LinearLayoutManager)
+                        .findFirstVisibleItemPosition()
+                    if (!isLoading) {
+                        if ((currentItem + scrolledOutItems) >= totalItem && scrolledOutItems >= 0) {
+                            Log.d("SCROLLED", "scrolled linear")
+                            isLoading = true
+                            progressBar.visibility = View.VISIBLE
+                            readNotes()
+                        }
+                    }
+                }
+            }
+        })
 
         return view
     }
 
+    private fun readNotes() {
+        profileViewModel.readNotes(startTime, requireContext())
+    }
 
 
     private fun initializeViewModels() {
@@ -136,6 +182,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         navMenu = requireActivity().findViewById(R.id.myNavMenu)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
+        progressBar = view.findViewById(R.id.rvProgressBar)
         adapter = NoteAdapter(tempList)
         //linearAdpater = NoteAdpaterLinear(tempList)
     }
@@ -185,9 +232,11 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         SharedPref.addString("title", noteList[position].title)
         SharedPref.addString("note", noteList[position].note)
         SharedPref.addString("key", noteList[position].key)
-        SharedPref.addString(Constants.IS_ARCHIVED,"false")
-        SharedPref.addBoolean(Constants.COLUMN_DELETED,noteList[position].deleted)
-        SharedPref.addBoolean(Constants.COLUMN_ARCHIVED,noteList[position].archived)
+        SharedPref.addString(Constants.IS_ARCHIVED, "false")
+        SharedPref.addString(Constants.COLUMN_MODIFIEDTIME, noteList[position].mTime)
+        SharedPref.addBoolean(Constants.COLUMN_DELETED, noteList[position].deleted)
+        SharedPref.addBoolean(Constants.COLUMN_ARCHIVED, noteList[position].archived)
+        SharedPref.addRemainder(Constants.COLUMN_REMAINDER, noteList[position].remainder)
     }
 
     private fun getUserNotes() {
@@ -195,13 +244,13 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     }
 
     private fun checkLayout() {
-        var count = SharedPref.get("counter")
+        var count = SharedPref.get(Constants.LAYOUT)
         if (count == "") {
             gridrecyclerView.isVisible = false
             gridrecyclerView.adapter = adapter
             gridrecyclerView.isVisible = true
 
-        } else if (count == "true") {
+        } else if (count == Constants.LINEAR) {
             layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -209,7 +258,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             //gridrecyclerView.adapter = linearAdpater
             gridrecyclerView.isVisible = true
 
-        } else if (count == "false") {
+        } else if (count == Constants.GRID) {
             layout.setImageResource(R.drawable.ic_linear_24)
             gridrecyclerView.isVisible = false
             gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -241,6 +290,37 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
 
     fun observe() {
+        profileViewModel.readNotesStatus.observe(viewLifecycleOwner) {
+
+            isLoading = false
+            Log.d("Limited notes", it.size.toString())
+            if (it.size == 0) {
+                progressBar.visibility = View.GONE
+                //isLoading = false
+            }
+            if (it.size == 1 && !it[0].deleted && !it[0].archived) {
+                noteList.add(it[0])
+                tempList.add(it[0])
+                startTime = it[0].mTime
+                adapter.notifyItemInserted(tempList.size - 1)
+                progressBar.visibility = View.GONE
+                //isLoading = false
+            } else if (it.size > 1) {
+                startTime = it[0].mTime
+                for (i in it.size - 1 downTo 0) {
+                    if (!it[i].deleted && !it[i].archived) {
+                        noteList.add(it[i])
+                        tempList.add(it[i])
+                        Log.d("Limited", startTime)
+                        adapter.notifyItemInserted(tempList.size - 1)
+
+                        progressBar.visibility = View.GONE
+                    }
+                }
+                // isLoading = false
+            }
+        }
+
         profileViewModel.profilePhotoUploadStatus.observe(viewLifecycleOwner) {
             if (it) {
                 profileViewModel.fetchProfile()
@@ -248,8 +328,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         }
 
         profileViewModel.profilePhotoFetch.observe(viewLifecycleOwner) {
-            // profilePhot = it
-
             if (it != null) {
                 SharedPref.addString("uri", it.toString())
                 Picasso.get().load(it).into(userIcon)
@@ -265,41 +343,37 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             dialogEmail.text = email
             dialogUsername.text = fullName
         }
-        profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
-            noteList.clear()
-            tempList.clear()
-            gridrecyclerView.isVisible = false
-            for (i in it.size-1 downTo 0) {
-                if (!it[i].deleted && !it[i].archived) {
-                    noteList.add(it[i])
-                }
-            }
-            tempList.addAll(noteList)
-            SharedPref.addNoteSize("noteSize", noteList.size)
-
-            if (SharedPref.get("counter") == "") {
-                //recyclerView.isVisible=false
-                gridrecyclerView.adapter = adapter
-                adapter.notifyItemInserted(noteList.size - 1)
-                gridrecyclerView.isVisible = true
-            } else if (SharedPref.get("counter") == "true") {
-                gridrecyclerView.isVisible = false
-                gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
-//                linearAdpater.notifyItemInserted(noteList.size - 1)
-//                gridrecyclerView.adapter = linearAdpater
-                gridrecyclerView.isVisible = true
-            } else if (SharedPref.get("counter") == "false") {
-                gridrecyclerView.isVisible = false
-                gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-                adapter.notifyItemInserted(noteList.size - 1)
-                gridrecyclerView.adapter = adapter
-                gridrecyclerView.isVisible = true
-            }
-            Log.d("reading notes", "Size of note  list is" + noteList.size)
-
-        }
-
-
+//        profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
+//            noteList.clear()
+//            tempList.clear()
+//            gridrecyclerView.isVisible = false
+//            for (i in it.size - 1 downTo 0) {
+//                if (!it[i].deleted && !it[i].archived) {
+//                    noteList.add(it[i])
+//                }
+//            }
+//            tempList.addAll(noteList)
+//            SharedPref.addNoteSize("noteSize", noteList.size)
+//
+//            if (SharedPref.get("counter") == "") {
+//                //recyclerView.isVisible=false
+//                gridrecyclerView.adapter = adapter
+//                adapter.notifyItemInserted(noteList.size - 1)
+//                gridrecyclerView.isVisible = true
+//            } else if (SharedPref.get("counter") == "true") {
+//                gridrecyclerView.isVisible = false
+//                gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
+//
+//                gridrecyclerView.isVisible = true
+//            } else if (SharedPref.get("counter") == "false") {
+//                gridrecyclerView.isVisible = false
+//                gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+//                adapter.notifyItemInserted(noteList.size - 1)
+//                gridrecyclerView.adapter = adapter
+//                gridrecyclerView.isVisible = true
+//            }
+//            Log.d("reading notes", "Size of note  list is" + noteList.size)
+//        }
     }
 
 
@@ -315,6 +389,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         dialogLogout.setOnClickListener {
             userIcon.setImageResource(R.drawable.man)
             dialogProfile.setImageResource(R.drawable.man)
+            layout.setImageResource(R.drawable.ic_linear_24)
             SharedPref.clearAll()
             dialog.dismiss()
             sharedViewModel.logout()
@@ -336,12 +411,10 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         }
 
         addNoteFAB.setOnClickListener {
-            SharedPref.addString(Constants.IS_ARCHIVED,"")
+            SharedPref.addString(Constants.IS_ARCHIVED, "")
             sharedViewModel.setGotoAddNotesPage(true)
         }
-
     }
-
 
     private fun initialiseDialog() {
         dialog = Dialog(requireContext())

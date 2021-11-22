@@ -95,10 +95,10 @@ class Utillity{
 
         fun loadNotesInLayoutType(context: Context, layout: ImageView, gridrecyclerView: RecyclerView,  adapter: NoteAdapter) {
             var flag: Boolean
-            var count = SharedPref.get("counter")
+            var count = SharedPref.get(Constants.LAYOUT)
             if (count == "") {
                 flag = true
-            } else if (count == "true") {
+            } else if (count == Constants.LINEAR) {
                 flag = false
             } else {
                 flag = true
@@ -108,17 +108,17 @@ class Utillity{
                 layout.setImageResource(R.drawable.ic_baseline_grid_on_24)
                 gridrecyclerView.isVisible = false
                 gridrecyclerView.layoutManager = LinearLayoutManager(context)
-                gridrecyclerView.adapter = adapter
+                //gridrecyclerView.adapter = adapter
                 gridrecyclerView.isVisible = true
-                SharedPref.addString("counter", "true")
+                SharedPref.addString(Constants.LAYOUT, Constants.LINEAR)
 
             } else {
                 layout.setImageResource(R.drawable.ic_linear_24)
                 //gridrecyclerView.isVisible = false
                 gridrecyclerView.layoutManager = GridLayoutManager(context, 2)
-                gridrecyclerView.adapter = adapter
+                //gridrecyclerView.adapter = adapter
                 gridrecyclerView.isVisible = true
-                SharedPref.addString("counter", "false")
+                SharedPref.addString(Constants.LAYOUT, Constants.GRID)
 
             }
 

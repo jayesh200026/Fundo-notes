@@ -17,12 +17,24 @@ class RemainderViewModel : ViewModel() {
     var readNotesFromDatabaseStatus =
         _readNotesFromDatabaseStatus as LiveData<MutableList<NotesKey>>
 
+    private val _removeRemainderStatus=MutableLiveData<Boolean>()
+    var removeRemainderStatus=_removeRemainderStatus as LiveData<Boolean>
+
     fun readNotesFromDatabase(context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
             val noteList = dbService.readNotes()
             Log.d("listsize", noteList.size.toString())
             _readNotesFromDatabaseStatus.value = noteList
+        }
+
+    }
+
+    fun removeRemainder(context: Context, userNote: NotesKey) {
+        viewModelScope.launch {
+            val dbService = DBService(MainActivity.roomDBClass, context)
+            val status = dbService.removeRemainder(userNote)
+            _removeRemainderStatus.value = status
         }
 
     }

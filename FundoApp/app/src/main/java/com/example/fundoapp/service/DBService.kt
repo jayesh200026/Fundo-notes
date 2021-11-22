@@ -114,58 +114,96 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     }
 
 
-    suspend fun updateNote(key: String, title: String, note: String, context: Context): Boolean {
+    suspend fun updateNote(note: NotesKey, context: Context): Boolean {
         val networkStatus = NetworkHandler.checkForInternet(context)
         val time = System.currentTimeMillis().toString()
+        val uid = Authentication.getCurrentUid()
+
         return withContext(Dispatchers.IO) {
             var roomStatus = 0
-            if (networkStatus) {
-                val userNote = NotesKey(title, note, key, mTime = time)
-                FirebaseDatabase.updateNote(userNote)
-                roomStatus = roomDB.noteDao.updateNote(title, note, key, time)
-            } else {
-                roomStatus = roomDB.noteDao.updateNote(title, note, key, time)
+            if (uid != null) {
+                if (networkStatus) {
+                    val userNote = NotesKey(
+                        title = note.title,
+                        note = note.note,
+                        key = note.key,
+                        deleted = note.deleted,
+                        archived = note.archived,
+                        mTime = time,
+                        remainder = note.remainder
+                    )
+                    FirebaseDatabase.updateNote(userNote)
+                    val noteEntity = NoteEntity(
+                        title = note.title,
+                        note = note.note,
+                        uid = uid,
+                        fid = note.key,
+                        deleted = note.deleted,
+                        archived = note.archived,
+                        modifiedTime = time,
+                        deletedForever = false,
+                        remainder = note.remainder
+                    )
+                    roomStatus = roomDB.noteDao.update(noteEntity)
+                } else {
+                    val noteEntity = NoteEntity(
+                        title = note.title,
+                        note = note.note,
+                        uid = uid,
+                        fid = note.key,
+                        deleted = note.deleted,
+                        archived = note.archived,
+                        modifiedTime = time,
+                        deletedForever = false,
+                        remainder = note.remainder
+                    )
+                    roomStatus = roomDB.noteDao.update(noteEntity)
+                }
             }
             roomStatus > 0
         }
+
     }
 
-    suspend fun archiveNote(title: String, note: String, key: String): Boolean {
+    suspend fun archiveNote(note: NotesKey): Boolean {
         val networkStatus = NetworkHandler.checkForInternet(context)
         val time = System.currentTimeMillis().toString()
         return withContext(Dispatchers.IO) {
             if (networkStatus) {
                 val userNote = NotesKey(
-                    title = title, note = note, key = key, archived = true,
-                    mTime = time
+                    title = note.title, note = note.note, key = note.key, archived = true,
+                    mTime = time, deleted = note.deleted, remainder = note.remainder
                 )
-                FirebaseDatabase.updateNote(userNote) && roomDB.noteDao.updateArchive(key, true) > 0
+                FirebaseDatabase.updateNote(userNote) && roomDB.noteDao.updateArchive(
+                    note.key,
+                    true
+                ) > 0
             } else {
-                roomDB.noteDao.updateArchive(key, true) > 0
+                roomDB.noteDao.updateArchive(note.key, true) > 0
             }
         }
     }
 
-    suspend fun unArchive(title: String, note: String, key: String): Boolean {
+    suspend fun unArchive(note: NotesKey): Boolean {
         val networkStatus = NetworkHandler.checkForInternet(context)
         val time = System.currentTimeMillis().toString()
         return withContext(Dispatchers.IO) {
             if (networkStatus) {
                 val userNote = NotesKey(
-                    title = title, note = note, key = key, archived = false,
-                    mTime = time
+                    title = note.title, note = note.note, key = note.key, archived = false,
+                    mTime = time, deleted = note.deleted, remainder = note.remainder
                 )
                 FirebaseDatabase.updateNote(userNote) && roomDB.noteDao.updateArchive(
-                    key,
+                    note.key,
                     false
                 ) > 0
             } else {
-                roomDB.noteDao.updateArchive(key, false) > 0
+                roomDB.noteDao.updateArchive(note.key, false) > 0
             }
         }
     }
 
-    suspend fun deleteNote(title: String, note: String, key: String): Boolean {
+    suspend fun deleteNote(note: NotesKey): Boolean {
 
         val time = System.currentTimeMillis().toString()
         val networkStatus = NetworkHandler.checkForInternet(context)
@@ -174,28 +212,39 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
 
             if (networkStatus) {
                 val userNote =
-                    NotesKey(title = title, note = note, key = key, deleted = true, mTime = time)
+                    NotesKey(
+                        title = note.title, note = note.note, key = note.key, deleted = true,
+                        archived = note.archived, mTime = time, remainder = note.remainder
+                    )
                 FirebaseDatabase.updateNote(userNote)
-                roomStatus = roomDB.noteDao.deleteNote(key, true, time)
+                roomStatus = roomDB.noteDao.deleteNote(note.key, true, time)
             } else {
-                roomStatus = roomDB.noteDao.deleteNote(key, true, time)
+                roomStatus = roomDB.noteDao.deleteNote(note.key, true, time)
             }
             roomStatus > 0
         }
     }
 
-    suspend fun restoreNote(title: String, note: String, key: String): Boolean {
+    suspend fun restoreNote(note: NotesKey): Boolean {
         val time = System.currentTimeMillis().toString()
         val networkStatus = NetworkHandler.checkForInternet(context)
         return withContext(Dispatchers.IO) {
             var restoreStatus = 0
             if (networkStatus) {
                 val userNote =
-                    NotesKey(title = title, note = note, key = key, deleted = false, mTime = time)
+                    NotesKey(
+                        title = note.title,
+                        note = note.note,
+                        key = note.key,
+                        deleted = false,
+                        archived = note.archived,
+                        mTime = time,
+                        remainder = note.remainder
+                    )
                 FirebaseDatabase.updateNote(userNote)
-                restoreStatus = roomDB.noteDao.restoreNote(key, false, time)
+                restoreStatus = roomDB.noteDao.restoreNote(note.key, false, time)
             } else {
-                restoreStatus = roomDB.noteDao.restoreNote(key, false, time)
+                restoreStatus = roomDB.noteDao.restoreNote(note.key, false, time)
             }
             restoreStatus > 0
         }
@@ -319,7 +368,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     }
 
 
-
     suspend fun fillNotes() {
 
         runBlocking {
@@ -337,8 +385,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 }
             }
         }
-
-
 
 
     }
@@ -370,10 +416,49 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 time,
                 remainderTime
             )
-            FirebaseDatabase.updateNote(noteToUpdate)
+            FirebaseDatabase.updateNote(noteToUpdate) && roomDB.noteDao.updateRemainder(
+                note.key,
+                remainderTime
+            ) > 0
         }
 
     }
 
+    suspend fun removeRemainder(note: NotesKey): Boolean {
 
+        val time = System.currentTimeMillis().toString()
+        val networkStatus = NetworkHandler.checkForInternet(context)
+        return withContext(Dispatchers.IO) {
+            var restoreStatus = 0
+            if (networkStatus) {
+                val userNote =
+                    NotesKey(
+                        title = note.title,
+                        note = note.note,
+                        key = note.key,
+                        deleted = note.deleted,
+                        archived = note.archived,
+                        mTime = time,
+                        remainder = note.remainder
+                    )
+                FirebaseDatabase.updateNote(userNote) &&
+                    roomDB.noteDao.removeRemainder(note.key, 0L) > 0
+            } else {
+                 roomDB.noteDao.removeRemainder(note.key, 0L) > 0
+            }
+
+        }
+    }
+
+    suspend fun readLimitedNotes(key: String): MutableList<NotesKey> {
+        val networkStatus = NetworkHandler.checkForInternet(context)
+        var list = mutableListOf<NotesKey>()
+        return withContext(Dispatchers.IO) {
+            if (networkStatus) {
+                list = FirebaseDatabase.readLimitedNotes(key)
+            }
+            list
+        }
+
+    }
 }

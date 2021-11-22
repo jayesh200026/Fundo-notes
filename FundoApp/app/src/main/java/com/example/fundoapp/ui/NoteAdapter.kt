@@ -6,9 +6,12 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.util.Constants
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -48,10 +51,18 @@ class NoteAdapter(
     override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
         val title = holder.itemView.findViewById<TextView>(R.id.gridTitle)
         val note = holder.itemView.findViewById<TextView>(R.id.gridNote)
+        val remainder = holder.itemView.findViewById<TextView>(R.id.gridRemainder)
 
         holder.itemView.apply {
             title.text = filteredNotes[position].title
             note.text = filteredNotes[position].note
+            if(filteredNotes[position].remainder == 0L){
+                remainder.visibility = View.GONE
+            }
+            else if(filteredNotes[position].remainder > 0){
+                remainder.isVisible = true
+                remainder.text = millisToDate(filteredNotes[position].remainder)
+            }
         }
 
     }
@@ -90,6 +101,9 @@ class NoteAdapter(
             }
 
         }
+    }
+    private fun millisToDate(millis: Long): String {
+        return SimpleDateFormat(Constants.DATE_FORMAT, Locale.US).format(Date(millis))
     }
 
 

@@ -3,6 +3,7 @@ package com.example.fundoapp.roomdb.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.fundoapp.roomdb.entity.NoteEntity
 
 @Dao
@@ -34,4 +35,13 @@ interface NoteDao {
 
     @Query("Update Notes set archived=:value where fid=:key")
      fun updateArchive(key: String, value: Boolean):Int
+
+     @Query("Update Notes set Remainder=:value where fid=:key")
+     fun updateRemainder(key : String, value :Long):Int
+
+     @Update
+     fun update(noteEntity : NoteEntity): Int
+
+     @Query("Update notes set Remainder=:l where fid=:key")
+     fun removeRemainder(key: String, l: Long): Int
 }

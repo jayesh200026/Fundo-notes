@@ -19,6 +19,11 @@ object Constants {
     const val COLUMN_KEY="key"
     const val COLUMN_LABEL="label"
 
+    const val GRID = "grid"
+    const val LINEAR = "linear"
+
+    const val LAYOUT = "layout"
+
     const val DATE_FORMAT = "dd/MM/yy hh:mm"
 
 }

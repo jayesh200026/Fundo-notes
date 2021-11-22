@@ -1,5 +1,7 @@
 package com.example.fundoapp.ui
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -32,10 +34,10 @@ class RemainderFragment : Fragment() {
     lateinit var archive: ImageView
     lateinit var remainder: ImageView
     lateinit var addNoteFAB: View
-    lateinit var adapter: RemainderAdapter
+    lateinit var adapter: NoteAdapter
     lateinit var gridrecyclerView: RecyclerView
     lateinit var sharedViewModel: SharedViewModel
-    lateinit var remainderViewModel:RemainderViewModel
+    lateinit var remainderViewModel: RemainderViewModel
 
 
     var noteList = mutableListOf<NotesKey>()
@@ -65,11 +67,11 @@ class RemainderFragment : Fragment() {
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
-        archive=requireActivity().findViewById(R.id.archiveImage)
+        archive = requireActivity().findViewById(R.id.archiveImage)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         remainder = requireActivity().findViewById(R.id.remainder)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
-        adapter = RemainderAdapter(tempList)
+        adapter = NoteAdapter(tempList)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addNoteFAB.isVisible = false
 
@@ -78,7 +80,7 @@ class RemainderFragment : Fragment() {
         observe()
         adapterListener()
         layout.setOnClickListener {
-            Utillity.loadRemainderNotesInLayout(
+            Utillity.loadNotesInLayoutType(
                 requireContext(),
                 layout,
                 gridrecyclerView,
@@ -89,19 +91,26 @@ class RemainderFragment : Fragment() {
     }
 
     private fun observe() {
-        remainderViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner){
+        remainderViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
             noteList.clear()
             tempList.clear()
-            gridrecyclerView.adapter=adapter
+            gridrecyclerView.adapter = adapter
+            val currentTime = System.currentTimeMillis()
             for (i in 0 until it.size) {
-                if (it[i].remainder > System.currentTimeMillis()) {
+                if (it[i].remainder > currentTime) {
                     noteList.add(it[i])
                 }
             }
             tempList.addAll(noteList)
             gridrecyclerView.adapter?.notifyDataSetChanged()
         }
+        remainderViewModel.removeRemainderStatus.observe(viewLifecycleOwner){
+            if(it){
+                //sharedViewModel.setGotoHomePageStatus(true)
+               getUserNotes()
+            }
         }
+    }
 
 
     private fun getUserNotes() {
@@ -109,29 +118,40 @@ class RemainderFragment : Fragment() {
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : RemainderAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
             override fun onItemClick(position: Int) {
+                var alertDialog = AlertDialog.Builder(requireContext()).create()
+                alertDialog.setTitle("Remove remainder from note?")
 
-                setValuesForUpdation(position)
-                Toast.makeText(
-                    requireContext(),
-                    "You clicked item ${position + 1}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                sharedViewModel.setGotoAddNotesPage(true)
+                alertDialog.setMessage(noteList[position].title + "\n" + noteList[position].note)
+
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Remove",
+                    DialogInterface.OnClickListener { dialog, id ->
+                        val userNote = NotesKey(
+                            title = noteList[position].title,
+                            note = noteList[position].note,
+                            key = noteList[position].key,
+                            deleted = noteList[position].deleted,
+                            archived = noteList[position].archived,
+                            mTime = noteList[position].mTime,
+                            remainder = 0L
+                        )
+                        remainderViewModel.removeRemainder(
+                            requireContext(), userNote
+                        )
+                        Toast.makeText(requireContext(), "Remove", Toast.LENGTH_SHORT).show()
+                    })
+
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel",
+                    DialogInterface.OnClickListener { dialog, id ->
+                        Toast.makeText(requireContext(), "Cancel", Toast.LENGTH_SHORT).show()
+                    })
+
+                alertDialog.show()
+
             }
 
         })
-
-    }
-
-    private fun setValuesForUpdation(position: Int) {
-        SharedPref.setUpdateStatus("updateStatus", true)
-        SharedPref.updateNotePosition("position", position + 1)
-        SharedPref.addString("title", noteList[position].title)
-        SharedPref.addString("note", noteList[position].note)
-        SharedPref.addString("key", noteList[position].key)
-        SharedPref.addString(Constants.IS_ARCHIVED,noteList[position].archived.toString())
 
     }
 
@@ -141,7 +161,7 @@ class RemainderFragment : Fragment() {
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
-        archive.isVisible=false
+        archive.isVisible = false
         remainder.isVisible = false
         val toggle = ActionBarDrawerToggle(
             requireActivity(),

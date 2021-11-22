@@ -48,7 +48,7 @@ class AddLabelFragment : Fragment() {
         labelRV.adapter = labelAdapter
         addLabelViewModel =
             ViewModelProvider(this, AddLabelViewModelFactory())[AddLabelViewModel::class.java]
-handleToolbar()
+        handleToolbar()
         readLabels()
         readNoteslabelRelation()
         fabBtn = view.findViewById(R.id.saveLabelFab)

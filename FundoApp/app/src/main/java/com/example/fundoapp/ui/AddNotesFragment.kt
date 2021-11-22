@@ -122,7 +122,8 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
             SharedPref.setUpdateStatus("updateStatus", false)
-            activity?.onBackPressed()
+            //activity?.onBackPressed()
+            sharedViewModel.setGotoHomePageStatus(true)
         }
     }
 
@@ -240,8 +241,13 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
+        val deleted = SharedPref.getBoolean(Constants.COLUMN_DELETED)
+        val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
+        val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
+        val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
+        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
-            addNoteViewModel.unArchiveNote(titleText, noteText, key!!, context)
+            addNoteViewModel.unArchiveNote(userNote, context)
         }
     }
 
@@ -250,8 +256,13 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
+        val deleted = SharedPref.getBoolean(Constants.COLUMN_DELETED)
+        val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
+        val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
+        val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
+        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
-            addNoteViewModel.archiveNote(titleText, noteText, key!!, context)
+            addNoteViewModel.archiveNote(userNote, context)
         }
     }
 
@@ -260,8 +271,13 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
+        val deleted = SharedPref.getBoolean(Constants.COLUMN_DELETED)
+        val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
+        val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
+        val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
+        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
-            addNoteViewModel.deleteNote(titleText, noteText, key!!, context)
+            addNoteViewModel.deleteNote(userNote, context)
         }
     }
 
@@ -270,7 +286,12 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val titleText = title.text.toString()
         val noteText = note.text.toString()
         val key = SharedPref.get("key")
-        addNoteViewModel.updateNote(key!!, titleText, noteText, context)
+        val deleted = SharedPref.getBoolean(Constants.COLUMN_DELETED)
+        val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
+        val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
+        val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
+        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
+        addNoteViewModel.updateNote(userNote, context)
     }
 
     private fun storeToDatabase() {

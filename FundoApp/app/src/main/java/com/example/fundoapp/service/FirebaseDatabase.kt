@@ -438,8 +438,6 @@ class FirebaseDatabase {
                     }
                 }
             }
-
-
         }
     }
 }

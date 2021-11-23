@@ -19,7 +19,6 @@ class SyncWorker(val context: Context, val workerParams: WorkerParameters) :
             val uid = Authentication.getCurrentUid()
             if (uid != null) {
                 Log.d("syncing", "going to sync ")
-
                 autoSync(uid)
             }
         }
@@ -58,9 +57,10 @@ class SyncWorker(val context: Context, val workerParams: WorkerParameters) :
                                 note = tempRoom.note,
                                 key = tempRoom.fid,
                                 deleted = tempRoom.deleted,
-                                mTime = tempRoom.modifiedTime
+                                archived = tempRoom.archived,
+                                mTime = tempRoom.modifiedTime,
+                                remainder = tempRoom.remainder
                             )
-
                             FirebaseDatabase.updateNote(updatedNotes)
                         }
                     }
@@ -75,7 +75,9 @@ class SyncWorker(val context: Context, val workerParams: WorkerParameters) :
                             note = roomNotes.getValue(i).note,
                             key = roomNotes.getValue(i).fid,
                             deleted = roomNotes.getValue(i).deleted,
-                            mTime = roomNotes.getValue(i).modifiedTime
+                            archived = roomNotes.getValue(i).archived,
+                            mTime = roomNotes.getValue(i).modifiedTime,
+                            remainder = roomNotes.getValue(i).remainder
                         )
                         FirebaseDatabase.addNote(newlyAddedNote)
                     } else {

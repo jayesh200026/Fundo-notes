@@ -64,6 +64,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     var tempList = mutableListOf<NotesKey>()
 
     var startTime = ""
+    var noteListSize = 0
     var isLoading = false
     var currentItem: Int = 0
     var totalItem: Int = 0
@@ -116,9 +117,15 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                         .findFirstVisibleItemPosition()
                     if (!isLoading) {
                         if ((currentItem + scrolledOutItems) >= totalItem && scrolledOutItems >= 0) {
-                            isLoading = true
-                            progressBar.visibility = View.VISIBLE
-                            readNotes()
+                            if(startTime != "" && noteListSize == 0){
+                                isLoading = true
+                                progressBar.visibility = View.VISIBLE
+                                readNotesFromStart()
+                            }else {
+                                isLoading = true
+                                progressBar.visibility = View.VISIBLE
+                                readNotes()
+                            }
                         }
                     }
 
@@ -129,10 +136,15 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                         .findFirstVisibleItemPosition()
                     if (!isLoading) {
                         if ((currentItem + scrolledOutItems) >= totalItem && scrolledOutItems >= 0) {
-                            Log.d("SCROLLED", "scrolled linear")
-                            isLoading = true
-                            progressBar.visibility = View.VISIBLE
-                            readNotes()
+                            if(startTime != "" && noteListSize == 0){
+                                isLoading = true
+                                progressBar.visibility = View.VISIBLE
+                                readNotesFromStart()
+                            }else {
+                                isLoading = true
+                                progressBar.visibility = View.VISIBLE
+                                readNotes()
+                            }
                         }
                     }
                 }
@@ -140,6 +152,10 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         })
 
         return view
+    }
+
+    private fun readNotesFromStart() {
+        profileViewModel.readNotes("", requireContext())
     }
 
     private fun readNotes() {
@@ -291,21 +307,23 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
 
     fun observe() {
         profileViewModel.readNotesStatus.observe(viewLifecycleOwner) {
-
+            noteListSize = it.size
             isLoading = false
             Log.d("Limited notes", it.size.toString())
-            if (it.size == 0) {
+            if (it.size == 0 ) {
                 progressBar.visibility = View.GONE
-                //isLoading = false
+                isLoading = false
             }
-            if (it.size == 1 && !it[0].deleted && !it[0].archived) {
-                noteList.add(it[0])
-                tempList.add(it[0])
-                startTime = it[0].mTime
-                adapter.notifyItemInserted(tempList.size - 1)
-                progressBar.visibility = View.GONE
-                //isLoading = false
-            } else if (it.size > 1) {
+//            if (it.size == 1 && !it[0].deleted && !it[0].archived) {
+//                noteList.add(it[0])
+//                tempList.add(it[0])
+//                startTime = it[0].mTime
+//                adapter.notifyItemInserted(tempList.size - 1)
+//                progressBar.visibility = View.GONE
+//                //isLoading = false
+//            }
+//            else if (it.size > 1) {
+            else{
                 startTime = it[0].mTime
                 for (i in it.size - 1 downTo 0) {
                     if (!it[i].deleted && !it[i].archived) {
@@ -314,10 +332,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                         Log.d("Limited", startTime)
                         adapter.notifyItemInserted(tempList.size - 1)
 
-                        progressBar.visibility = View.GONE
+                        progressBar.isVisible = false
+                        gridrecyclerView.isVisible = true
+
                     }
                 }
-                // isLoading = false
+                 isLoading = false
             }
         }
 

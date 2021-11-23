@@ -176,10 +176,10 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 )
                 FirebaseDatabase.updateNote(userNote) && roomDB.noteDao.updateArchive(
                     note.key,
-                    true
-                ) > 0
+                    true,
+                time) > 0
             } else {
-                roomDB.noteDao.updateArchive(note.key, true) > 0
+                roomDB.noteDao.updateArchive(note.key, true,time) > 0
             }
         }
     }
@@ -195,10 +195,11 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 )
                 FirebaseDatabase.updateNote(userNote) && roomDB.noteDao.updateArchive(
                     note.key,
-                    false
+                    false,
+                    time
                 ) > 0
             } else {
-                roomDB.noteDao.updateArchive(note.key, false) > 0
+                roomDB.noteDao.updateArchive(note.key, false,time) > 0
             }
         }
     }
@@ -406,20 +407,31 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
 
     suspend fun addRemainder(note: NotesKey, remainderTime: Long): Boolean {
         val time = System.currentTimeMillis().toString()
+        val networkStatus = NetworkHandler.checkForInternet(context)
         return withContext(Dispatchers.IO) {
-            val noteToUpdate = NotesKey(
-                note.title,
-                note.note,
-                note.key,
-                note.deleted,
-                note.archived,
-                time,
-                remainderTime
-            )
-            FirebaseDatabase.updateNote(noteToUpdate) && roomDB.noteDao.updateRemainder(
-                note.key,
-                remainderTime
-            ) > 0
+            if(networkStatus) {
+                val noteToUpdate = NotesKey(
+                    note.title,
+                    note.note,
+                    note.key,
+                    note.deleted,
+                    note.archived,
+                    time,
+                    remainderTime
+                )
+                FirebaseDatabase.updateNote(noteToUpdate) && roomDB.noteDao.updateRemainder(
+                    note.key,
+                    remainderTime,
+                    time
+                ) > 0
+            }
+            else{
+                roomDB.noteDao.updateRemainder(
+                    note.key,
+                    remainderTime,
+                    time
+                ) > 0
+            }
         }
 
     }
@@ -442,9 +454,9 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                         remainder = note.remainder
                     )
                 FirebaseDatabase.updateNote(userNote) &&
-                    roomDB.noteDao.removeRemainder(note.key, 0L) > 0
+                    roomDB.noteDao.removeRemainder(note.key, 0L,time) > 0
             } else {
-                 roomDB.noteDao.removeRemainder(note.key, 0L) > 0
+                 roomDB.noteDao.removeRemainder(note.key, 0L,time) > 0
             }
 
         }

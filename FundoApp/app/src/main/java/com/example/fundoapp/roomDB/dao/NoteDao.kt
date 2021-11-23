@@ -33,15 +33,15 @@ interface NoteDao {
     @Query("Delete from Notes")
     fun clearTable()
 
-    @Query("Update Notes set archived=:value where fid=:key")
-     fun updateArchive(key: String, value: Boolean):Int
+    @Query("Update Notes set archived=:value,modifiedTime=:time where fid=:key")
+     fun updateArchive(key: String, value: Boolean,time:String):Int
 
-     @Query("Update Notes set Remainder=:value where fid=:key")
-     fun updateRemainder(key : String, value :Long):Int
+     @Query("Update Notes set Remainder=:value,modifiedTime=:time where fid=:key")
+     fun updateRemainder(key : String, value :Long,time:String):Int
 
      @Update
      fun update(noteEntity : NoteEntity): Int
 
-     @Query("Update notes set Remainder=:l where fid=:key")
-     fun removeRemainder(key: String, l: Long): Int
+     @Query("Update notes set Remainder=:l,modifiedTime=:time where fid=:key")
+     fun removeRemainder(key: String, l: Long,time:String): Int
 }

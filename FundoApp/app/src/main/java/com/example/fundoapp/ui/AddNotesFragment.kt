@@ -109,10 +109,10 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         deleteBtn.isVisible = false
         archive.isVisible = false
 
-        if (SharedPref.get(Constants.IS_ARCHIVED) == "true") {
+        if (SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)) {
             archive.setImageResource(R.drawable.ic_baseline_unarchive_24)
             archive.isVisible = true
-        } else if (SharedPref.get(Constants.IS_ARCHIVED) == "false") {
+        } else if (!SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)) {
             archive.setImageResource(R.drawable.ic_baseline_archive_24)
             archive.isVisible = true
         }
@@ -223,9 +223,9 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
                 deleteNote()
             }
             R.id.archiveImage -> {
-                if (SharedPref.get(Constants.IS_ARCHIVED) == "false") {
+                if (!SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)) {
                     archiveNote()
-                } else if (SharedPref.get(Constants.IS_ARCHIVED) == "true") {
+                } else if (SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)) {
                     unarchive()
                 }
             }

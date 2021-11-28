@@ -9,6 +9,7 @@ import com.example.fundoapp.roomdb.entity.LabelEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.example.fundoapp.service.Authentication
 import com.example.fundoapp.service.DBService
+import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.ui.MainActivity
 import kotlinx.coroutines.launch
 import com.example.fundoapp.service.model.User
@@ -55,6 +56,10 @@ class SharedViewModel : ViewModel() {
     private val _readLabelsFromDatabaseStatus = MutableLiveData<MutableList<LabelEntity>>()
     var readLabelsFromDatabaseStatus =
         _readLabelsFromDatabaseStatus as LiveData<MutableList<LabelEntity>>
+
+    private val _readNotesStatus = MutableLiveData<MutableList<NotesKey>>()
+    var readNotesStatus =
+        _readNotesStatus as LiveData<MutableList<NotesKey>>
 
     fun setGotoLabelPageStatus(status: Boolean) {
         _gotoLabelPageStatus.value = status
@@ -129,6 +134,14 @@ class SharedViewModel : ViewModel() {
 
     fun setGotoRemainderPageStatus(status : Boolean){
         _gotoRemainderPageStatus.value = status
+    }
+
+    fun readNotes(context: Context) {
+        viewModelScope.launch {
+            val dbService = DBService(MainActivity.roomDBClass, context)
+            val list = dbService.readNotes()
+            _readNotesStatus.value = list
+        }
     }
 
 }

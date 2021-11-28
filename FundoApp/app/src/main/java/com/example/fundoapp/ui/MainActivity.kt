@@ -1,5 +1,6 @@
 package com.example.fundoapp.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -7,7 +8,6 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.Toast
@@ -24,9 +24,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
 import com.example.fundoapp.service.Authentication
+import com.example.fundoapp.service.NotificationWorker
 import com.example.fundoapp.service.RoomDatabase
 import com.example.fundoapp.util.SharedPref
 import com.example.fundoapp.service.SyncWorker
+import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.util.Constants
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -64,25 +68,45 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
         SharedPref.initSharedPref(this)
+
         sharedViewModel = ViewModelProvider(
             this@MainActivity,
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
+
+        val bundle = intent.extras
+        if(bundle != null){
+            Log.d("Notification","Inside if block")
+            Log.d("Notification",""+bundle.getString("Destination"))
+            if(bundle.getString("Destination") == "userNote"){
+                val note = bundle.getSerializable("reminderNote") as NotesKey
+                loadNotifiedNote(note)
+            }
+        }
+
         observeNavigation()
-//        val loggedIn = checkIfLoggedIn()
-//        if (loggedIn) {
-//            gotoHomePage()
-//        } else {
-//            gotoSplashScreen()
-//        }
         if(savedInstanceState == null){
             gotoSplashScreen()
         }
-        worker()
+        readNotes()
+    }
 
+    private fun loadNotifiedNote(note: NotesKey) {
+        SharedPref.setUpdateStatus("updateStatus", true)
+        SharedPref.addString("title", note.title)
+        SharedPref.addString("note", note.note)
+        SharedPref.addString("key", note.key)
+        SharedPref.addString(Constants.COLUMN_MODIFIEDTIME, note.mTime)
+        SharedPref.addBoolean(Constants.COLUMN_DELETED, note.deleted)
+        SharedPref.addBoolean(Constants.COLUMN_ARCHIVED, note.archived)
+        SharedPref.addRemainder(Constants.COLUMN_REMAINDER, note.remainder)
+        sharedViewModel.setGotoAddNotesPage(true)
     }
 
 
+    private fun readNotes() {
+        sharedViewModel.readNotes(this)
+    }
 
 
     private fun checkIfLoggedIn(): Boolean {
@@ -162,8 +186,36 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     gotoRemainderPage()
                 }
             })
+        sharedViewModel.readNotesStatus.observe(this,{
+            scheduleNotification(it)
+        })
 
 
+    }
+
+    @SuppressLint("RestrictedApi")
+    private fun scheduleNotification(it: MutableList<NotesKey>) {
+        val currentTime = System.currentTimeMillis()
+        for(i in it){
+            val reminder = i.remainder
+            val delay = reminder - currentTime
+            if(delay > 0){
+                val data = Data.Builder()
+                data.putString("noteTitle",i.title)
+                data.putString("noteContent",i.note)
+                data.putString("noteKey",i.key)
+                data.putBoolean("isDeleted",i.deleted)
+                data.putBoolean("isArchived",i.archived)
+                data.putString("modifiedTime",i.mTime)
+                data.putLong("reminder",i.remainder)
+                Toast.makeText(this,"set remainder in "+TimeUnit.MILLISECONDS.toMinutes(delay)+" minutes",Toast.LENGTH_SHORT).show()
+                val request :WorkRequest = OneTimeWorkRequest.Builder(NotificationWorker::class.java)
+                    .setInputData(data.build())
+                    .setInitialDelay(delay,TimeUnit.MILLISECONDS)
+                    .build()
+                WorkManager.getInstance(this).enqueue(request)
+            }
+        }
     }
 
     private fun gotoRemainderPage() {
@@ -311,6 +363,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
     private fun worker() {
+
         val connectivityManager =
             this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -329,8 +382,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     WorkManager.getInstance(this@MainActivity).enqueue(syncWorkRequest)
                 }
-
             })
         }
+
     }
 }

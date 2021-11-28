@@ -177,9 +177,10 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 FirebaseDatabase.updateNote(userNote) && roomDB.noteDao.updateArchive(
                     note.key,
                     true,
-                time) > 0
+                    time
+                ) > 0
             } else {
-                roomDB.noteDao.updateArchive(note.key, true,time) > 0
+                roomDB.noteDao.updateArchive(note.key, true, time) > 0
             }
         }
     }
@@ -199,7 +200,7 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                     time
                 ) > 0
             } else {
-                roomDB.noteDao.updateArchive(note.key, false,time) > 0
+                roomDB.noteDao.updateArchive(note.key, false, time) > 0
             }
         }
     }
@@ -333,8 +334,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     suspend fun deleteLabel(labelEntity: Label): Boolean {
 
         return withContext(Dispatchers.IO) {
-
-
             val deletelabelStatus = FirebaseDatabase.deleteLabel(labelEntity.labelId)
             deletelabelStatus
         }
@@ -393,7 +392,7 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     suspend fun fillToRoomDB() {
         return withContext(Dispatchers.IO) {
             Log.d("Filling", "going to fill")
-            fillNotes()
+            //fillNotes()
             //fillLabel()
             //fillNoteLabel()
         }
@@ -409,7 +408,7 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
         val time = System.currentTimeMillis().toString()
         val networkStatus = NetworkHandler.checkForInternet(context)
         return withContext(Dispatchers.IO) {
-            if(networkStatus) {
+            if (networkStatus) {
                 val noteToUpdate = NotesKey(
                     note.title,
                     note.note,
@@ -424,8 +423,7 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                     remainderTime,
                     time
                 ) > 0
-            }
-            else{
+            } else {
                 roomDB.noteDao.updateRemainder(
                     note.key,
                     remainderTime,
@@ -454,23 +452,63 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                         remainder = note.remainder
                     )
                 FirebaseDatabase.updateNote(userNote) &&
-                    roomDB.noteDao.removeRemainder(note.key, 0L,time) > 0
+                        roomDB.noteDao.removeRemainder(note.key, 0L, time) > 0
             } else {
-                 roomDB.noteDao.removeRemainder(note.key, 0L,time) > 0
+                roomDB.noteDao.removeRemainder(note.key, 0L, time) > 0
             }
 
         }
     }
 
-    suspend fun readLimitedNotes(key: String): MutableList<NotesKey> {
+    suspend fun readLimitedNotes(key: String, offset: Int): MutableList<NotesKey> {
         val networkStatus = NetworkHandler.checkForInternet(context)
+        val uid = Authentication.getCurrentUid()
         var list = mutableListOf<NotesKey>()
+        var roomNotesList = mutableListOf<NotesKey>()
+        var roomList = mutableListOf<NoteEntity>()
         return withContext(Dispatchers.IO) {
-            if (networkStatus) {
-                list = FirebaseDatabase.readLimitedNotes(key)
+            if (networkStatus && uid != null) {
+                roomList = roomDB.noteDao.readLimitedNotes(offset, 10)
+                Log.d("roomlist", roomList.size.toString() + " offset= " + offset)
+                if (roomList.isEmpty()) {
+                    list = FirebaseDatabase.readLimitedNotes(key)
+                    Log.d("roomlist", "Firebase size " + list.size)
+                    for (i in list.size - 1 downTo 0) {
+                        addNotesFromFBtoRoom(list[i], uid)
+                    }
+                    roomList = roomDB.noteDao.readLimitedNotes(offset, 10)
+                }
+
+//                val roomList=roomDB.noteDao.readLimitedNotes(offset,10)
+                roomNotesList = convertToNotes(roomList)
+
+            } else if (!networkStatus) {
+                roomList = roomDB.noteDao.readLimitedNotes(offset, 10)
+                roomNotesList = convertToNotes(roomList)
             }
-            list
+            roomNotesList
         }
 
     }
+
+    private fun convertToNotes(roomList: MutableList<NoteEntity>): MutableList<NotesKey> {
+        val tempList = mutableListOf<NotesKey>()
+        for (i in roomList) {
+            if (!i.deletedForever) {
+                val note = NotesKey(
+                    i.title,
+                    i.note,
+                    i.fid,
+                    i.deleted,
+                    i.archived,
+                    i.modifiedTime,
+                    i.remainder
+
+                )
+                tempList.add(note)
+            }
+        }
+        return tempList
+    }
+
 }

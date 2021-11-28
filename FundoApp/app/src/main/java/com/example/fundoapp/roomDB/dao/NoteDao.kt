@@ -44,4 +44,7 @@ interface NoteDao {
 
      @Query("Update notes set Remainder=:l,modifiedTime=:time where fid=:key")
      fun removeRemainder(key: String, l: Long,time:String): Int
+
+     @Query("Select * from Notes ORDER BY modifiedTime DESC limit:limit offset:offset")
+    fun readLimitedNotes(offset: Int,limit: Int):MutableList<NoteEntity>
 }

@@ -76,10 +76,10 @@ class HomeViewModel : ViewModel() {
 
     }
 
-    fun readNotes(key: String,context: Context) {
+    fun readNotes(key: String,offset: Int,context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
-            val list = dbService.readLimitedNotes(key)
+            val list = dbService.readLimitedNotes(key,offset)
             _readNotesStatus.value = list
         }
 

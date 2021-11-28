@@ -19,7 +19,7 @@ class SyncWorker(val context: Context, val workerParams: WorkerParameters) :
             val uid = Authentication.getCurrentUid()
             if (uid != null) {
                 Log.d("syncing", "going to sync ")
-                autoSync(uid)
+                //autoSync(uid)
             }
         }
         return Result.success()

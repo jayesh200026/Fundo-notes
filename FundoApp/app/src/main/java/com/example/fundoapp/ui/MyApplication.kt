@@ -13,8 +13,7 @@ class MyApplication : Application() {
             NotificationManagerCompat.IMPORTANCE_DEFAULT, false,
             getString(R.string.app_name), "App notification channel.")
 
-        NotificationHelper.createSampleDataNotification(this,
-        "Notify title","still have to implement")
+
 
     }
 }

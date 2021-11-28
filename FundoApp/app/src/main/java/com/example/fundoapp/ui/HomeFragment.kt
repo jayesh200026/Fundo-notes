@@ -64,6 +64,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     var tempList = mutableListOf<NotesKey>()
 
     var startTime = ""
+    var offset = 0
     var noteListSize = 0
     var isLoading = false
     var currentItem: Int = 0
@@ -117,11 +118,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                         .findFirstVisibleItemPosition()
                     if (!isLoading) {
                         if ((currentItem + scrolledOutItems) >= totalItem && scrolledOutItems >= 0) {
-                            if(startTime != "" && noteListSize == 0){
+                            if (startTime != "" && noteListSize == 0) {
                                 isLoading = true
+                                offset = 0
                                 progressBar.visibility = View.VISIBLE
                                 readNotesFromStart()
-                            }else {
+                            } else {
                                 isLoading = true
                                 progressBar.visibility = View.VISIBLE
                                 readNotes()
@@ -136,11 +138,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                         .findFirstVisibleItemPosition()
                     if (!isLoading) {
                         if ((currentItem + scrolledOutItems) >= totalItem && scrolledOutItems >= 0) {
-                            if(startTime != "" && noteListSize == 0){
+                            if (startTime != "" && noteListSize == 0) {
                                 isLoading = true
+                                offset = 0
                                 progressBar.visibility = View.VISIBLE
                                 readNotesFromStart()
-                            }else {
+                            } else {
                                 isLoading = true
                                 progressBar.visibility = View.VISIBLE
                                 readNotes()
@@ -155,11 +158,11 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     }
 
     private fun readNotesFromStart() {
-        profileViewModel.readNotes("", requireContext())
+        profileViewModel.readNotes("", offset, requireContext())
     }
 
     private fun readNotes() {
-        profileViewModel.readNotes(startTime, requireContext())
+        profileViewModel.readNotes(startTime, offset, requireContext())
     }
 
 
@@ -308,36 +311,24 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     fun observe() {
         profileViewModel.readNotesStatus.observe(viewLifecycleOwner) {
             noteListSize = it.size
+            offset += it.size
             isLoading = false
             Log.d("Limited notes", it.size.toString())
-            if (it.size == 0 ) {
+            if (it.size == 0) {
                 progressBar.visibility = View.GONE
                 isLoading = false
-            }
-//            if (it.size == 1 && !it[0].deleted && !it[0].archived) {
-//                noteList.add(it[0])
-//                tempList.add(it[0])
-//                startTime = it[0].mTime
-//                adapter.notifyItemInserted(tempList.size - 1)
-//                progressBar.visibility = View.GONE
-//                //isLoading = false
-//            }
-//            else if (it.size > 1) {
-            else{
-                startTime = it[0].mTime
-                for (i in it.size - 1 downTo 0) {
+            } else {
+                for (i in 0 until it.size) {
                     if (!it[i].deleted && !it[i].archived) {
                         noteList.add(it[i])
                         tempList.add(it[i])
-                        Log.d("Limited", startTime)
+                        startTime = it[i].mTime
                         adapter.notifyItemInserted(tempList.size - 1)
-
                         progressBar.isVisible = false
                         gridrecyclerView.isVisible = true
-
                     }
                 }
-                 isLoading = false
+                isLoading = false
             }
         }
 

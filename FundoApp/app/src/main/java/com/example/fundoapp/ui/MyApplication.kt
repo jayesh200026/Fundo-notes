@@ -12,8 +12,5 @@ class MyApplication : Application() {
         NotificationHelper.createNotificationChannel(this,
             NotificationManagerCompat.IMPORTANCE_DEFAULT, false,
             getString(R.string.app_name), "App notification channel.")
-
-
-
     }
 }

@@ -38,7 +38,6 @@ object NotificationHelper {
     fun createSampleDataNotification(context: Context, note :NotesKey) {
 
         val channelId = Constants.CHANNEL_ID
-
         val notificationBuilder = NotificationCompat.Builder(context, channelId).apply {
             setSmallIcon(R.drawable.ic_baseline_notifications)
             setContentTitle(note.title)
@@ -66,6 +65,7 @@ object NotificationHelper {
 
         notificationManager.notify(1001, notificationBuilder.build())
     }
+
 
 
 

@@ -30,7 +30,9 @@ import com.example.fundoapp.util.SharedPref
 import com.example.fundoapp.service.SyncWorker
 import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.util.Constants
+import com.google.firebase.ktx.Firebase
 import java.util.concurrent.TimeUnit
+import com.google.firebase.messaging.ktx.messaging
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -54,7 +56,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawerLayout = findViewById(R.id.drawerLayout)
         navMenu = findViewById(R.id.myNavMenu)
         roomDBClass = Room.databaseBuilder(applicationContext, RoomDatabase::class.java, "myDB")
-            .fallbackToDestructiveMigration().allowMainThreadQueries().build()
+            .fallbackToDestructiveMigration().build()
+
         setSupportActionBar(toolbar)
 
         val toggle =
@@ -74,21 +77,34 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
 
+
         val bundle = intent.extras
-        if(bundle != null){
-            Log.d("Notification","Inside if block")
-            Log.d("Notification",""+bundle.getString("Destination"))
-            if(bundle.getString("Destination") == "userNote"){
+        observeNavigation()
+        if (savedInstanceState == null && bundle == null) {
+            gotoSplashScreen()
+        }
+
+        readNotes()
+        subscribe()
+
+        if (bundle != null) {
+            Toast.makeText(this, "Inside if block", Toast.LENGTH_SHORT).show()
+            if (bundle.getString("Destination") == "userNote") {
                 val note = bundle.getSerializable("reminderNote") as NotesKey
                 loadNotifiedNote(note)
             }
         }
+    }
 
-        observeNavigation()
-        if(savedInstanceState == null){
-            gotoSplashScreen()
-        }
-        readNotes()
+    private fun subscribe() {
+        Firebase.messaging.subscribeToTopic("weather")
+            .addOnCompleteListener { task ->
+
+                if (!task.isSuccessful) {
+                    Toast.makeText(this, "Failed subscribing", Toast.LENGTH_SHORT).show()
+                }
+
+            }
     }
 
     private fun loadNotifiedNote(note: NotesKey) {
@@ -100,7 +116,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         SharedPref.addBoolean(Constants.COLUMN_DELETED, note.deleted)
         SharedPref.addBoolean(Constants.COLUMN_ARCHIVED, note.archived)
         SharedPref.addRemainder(Constants.COLUMN_REMAINDER, note.remainder)
-        sharedViewModel.setGotoAddNotesPage(true)
+        //sharedViewModel.setGotoAddNotesPage(true)
+        gotoAddNotesPage()
     }
 
 
@@ -162,31 +179,31 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         sharedViewModel.gotoLabelPageStatus.observe(this@MainActivity,
             {
                 if (it) {
-                    Log.d("label","going to label page")
+                    Log.d("label", "going to label page")
                     gotoLabelPage()
                 }
             })
 
         sharedViewModel.gotoAddLablesPageStatus.observe(this@MainActivity,
             {
-                if(it){
+                if (it) {
                     gotoAddLabelPage()
                 }
             })
         sharedViewModel.gotoArchivedNotesPageStatus.observe(this@MainActivity,
             {
-                if(it){
+                if (it) {
                     gotoArchivedNotesPage()
                 }
             })
 
         sharedViewModel.gotoRemainderPageStatus.observe(this@MainActivity,
             {
-                if(it){
+                if (it) {
                     gotoRemainderPage()
                 }
             })
-        sharedViewModel.readNotesStatus.observe(this,{
+        sharedViewModel.readNotesStatus.observe(this, {
             scheduleNotification(it)
         })
 
@@ -196,24 +213,34 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     @SuppressLint("RestrictedApi")
     private fun scheduleNotification(it: MutableList<NotesKey>) {
         val currentTime = System.currentTimeMillis()
-        for(i in it){
+        for (i in it) {
             val reminder = i.remainder
             val delay = reminder - currentTime
-            if(delay > 0){
+            if (delay > 0) {
                 val data = Data.Builder()
-                data.putString("noteTitle",i.title)
-                data.putString("noteContent",i.note)
-                data.putString("noteKey",i.key)
-                data.putBoolean("isDeleted",i.deleted)
-                data.putBoolean("isArchived",i.archived)
-                data.putString("modifiedTime",i.mTime)
-                data.putLong("reminder",i.remainder)
-                Toast.makeText(this,"set remainder in "+TimeUnit.MILLISECONDS.toMinutes(delay)+" minutes",Toast.LENGTH_SHORT).show()
-                val request :WorkRequest = OneTimeWorkRequest.Builder(NotificationWorker::class.java)
+                data.putString("noteTitle", i.title)
+                data.putString("noteContent", i.note)
+                data.putString("noteKey", i.key)
+                data.putBoolean("isDeleted", i.deleted)
+                data.putBoolean("isArchived", i.archived)
+                data.putString("modifiedTime", i.mTime)
+                data.putLong("reminder", i.remainder)
+                Toast.makeText(
+                    this,
+                    "set remainder in " + TimeUnit.MILLISECONDS.toMinutes(delay) + " minutes",
+                    Toast.LENGTH_SHORT
+                ).show()
+                val request = OneTimeWorkRequest.Builder(NotificationWorker::class.java)
                     .setInputData(data.build())
-                    .setInitialDelay(delay,TimeUnit.MILLISECONDS)
+                    .setInitialDelay(delay, TimeUnit.MILLISECONDS)
                     .build()
-                WorkManager.getInstance(this).enqueue(request)
+
+                //WorkManager.getInstance(this).enqueue(request)
+                WorkManager.getInstance(this).enqueueUniqueWork(
+                    i.key,
+                    ExistingWorkPolicy.REPLACE,
+                    request
+                )
             }
         }
     }
@@ -315,8 +342,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawerLayout.closeDrawer(GravityCompat.START)
         when (item.itemId) {
             R.id.menuAddNotes -> {
-                Log.d("label","clicked create label")
-                    sharedViewModel.setGotoLabelPageStatus(true)
+                Log.d("label", "clicked create label")
+                sharedViewModel.setGotoLabelPageStatus(true)
             }
             R.id.menuReminder -> {
                 sharedViewModel.setGotoRemainderPageStatus(true)
@@ -367,7 +394,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val connectivityManager =
             this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            connectivityManager.registerDefaultNetworkCallback(object :ConnectivityManager.NetworkCallback(){
+            connectivityManager.registerDefaultNetworkCallback(object :
+                ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
 

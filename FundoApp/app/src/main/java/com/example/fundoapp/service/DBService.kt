@@ -478,17 +478,13 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                     }
                     roomList = roomDB.noteDao.readLimitedNotes(offset, 10)
                 }
-
-//                val roomList=roomDB.noteDao.readLimitedNotes(offset,10)
                 roomNotesList = convertToNotes(roomList)
-
             } else if (!networkStatus) {
                 roomList = roomDB.noteDao.readLimitedNotes(offset, 10)
                 roomNotesList = convertToNotes(roomList)
             }
             roomNotesList
         }
-
     }
 
     private fun convertToNotes(roomList: MutableList<NoteEntity>): MutableList<NotesKey> {

@@ -8,9 +8,11 @@ import com.example.fundoapp.roomdb.entity.NoteEntity
 
 @Dao
 interface NoteDao {
-
     @Insert
     fun insertNote(note: NoteEntity): Long
+
+//    @Insert
+//    fun insertNotes(notes: List<NoteEntity>): Long
 
     @Query("Select * from Notes where uid=:uid")
     fun readNotes(uid: String): MutableList<NoteEntity>

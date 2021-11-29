@@ -3,6 +3,7 @@ package com.example.fundoapp.ui
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -12,9 +13,14 @@ import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import com.example.fundoapp.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.example.fundoapp.service.Authentication
+import com.example.fundoapp.service.NotificationWorker
 import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.util.Constants
 import com.example.fundoapp.util.SharedPref
@@ -24,6 +30,7 @@ import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 private const val DATE_FORMAT = "dd/MM/yy hh:mm"
 
@@ -44,7 +51,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
     lateinit var saveBtn: FloatingActionButton
     private lateinit var sharedViewModel: SharedViewModel
     lateinit var addNoteViewModel: AddNoteViewModel
-
 
 
     var day = 0
@@ -245,7 +251,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
         val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
         val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
-        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
+        val userNote = NotesKey(titleText, noteText, key!!, deleted, archived, mtime!!, remainder)
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
             addNoteViewModel.unArchiveNote(userNote, context)
         }
@@ -260,7 +266,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
         val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
         val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
-        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
+        val userNote = NotesKey(titleText, noteText, key!!, deleted, archived, mtime!!, remainder)
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
             addNoteViewModel.archiveNote(userNote, context)
         }
@@ -275,7 +281,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
         val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
         val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
-        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
+        val userNote = NotesKey(titleText, noteText, key!!, deleted, archived, mtime!!, remainder)
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
             addNoteViewModel.deleteNote(userNote, context)
         }
@@ -290,7 +296,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
         val mtime = SharedPref.get(Constants.COLUMN_MODIFIEDTIME)
         val remainder = SharedPref.getRemainder(Constants.COLUMN_REMAINDER)
-        val userNote = NotesKey(titleText,noteText,key!!,deleted,archived,mtime!!,remainder)
+        val userNote = NotesKey(titleText, noteText, key!!, deleted, archived, mtime!!, remainder)
         addNoteViewModel.updateNote(userNote, context)
     }
 
@@ -330,9 +336,8 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
 
         if (timeInMilli > System.currentTimeMillis()) {
             addRemainder(timeInMilli)
-        }
-        else{
-            Toast.makeText(requireContext(),R.string.invalidRemainder,Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), R.string.invalidRemainder, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -345,8 +350,45 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
         val note = NotesKey(titleText, noteText, key!!, deleted, archived, "")
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
+            scheduleNotification(note,timeInMilli)
             addNoteViewModel.addRemainder(note, context, timeInMilli)
         }
+    }
+
+    private fun scheduleNotification(i: NotesKey,timeInMilli: Long) {
+        Log.d("Notification","scheduling notification")
+        val currentTime = System.currentTimeMillis()
+
+        val reminder = timeInMilli
+        val delay = reminder - currentTime
+        if (delay > 0) {
+            val data = Data.Builder()
+            data.putString("noteTitle", i.title)
+            data.putString("noteContent", i.note)
+            data.putString("noteKey", i.key)
+            data.putBoolean("isDeleted", i.deleted)
+            data.putBoolean("isArchived", i.archived)
+            data.putString("modifiedTime", i.mTime)
+            data.putLong("reminder", reminder)
+            Toast.makeText(
+                requireContext(),
+                "set remainder in " + TimeUnit.MILLISECONDS.toMinutes(delay) + " minutes",
+                Toast.LENGTH_SHORT
+            ).show()
+            val request = OneTimeWorkRequest.Builder(NotificationWorker::class.java)
+                .setInputData(data.build())
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .build()
+
+            //WorkManager.getInstance(this).enqueue(request)
+            WorkManager.getInstance(requireActivity()).enqueueUniqueWork(
+                i.key,
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+
+
     }
 
     private fun getDateTimeCalender() {

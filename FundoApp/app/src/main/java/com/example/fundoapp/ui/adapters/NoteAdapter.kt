@@ -1,70 +1,39 @@
-package com.example.fundoapp.ui
+package com.example.fundoapp.ui.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
-import android.widget.TextView
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
-import com.example.fundoapp.util.Constants
-import java.text.SimpleDateFormat
+import com.example.fundoapp.ui.OnItemClickListner
 import java.util.*
 import kotlin.collections.ArrayList
 
 class NoteAdapter(
     var notes: List<NotesKey>
-) : RecyclerView.Adapter<NoteAdapter.TodoViewHolder>(), Filterable {
-    inner class TodoViewHolder(itemview: View, listener: onItemClickListner) :
-        RecyclerView.ViewHolder(itemview) {
-        init {
-            itemview.setOnClickListener {
-                listener.onItemClick(adapterPosition)
-            }
-        }
-    }
+) : RecyclerView.Adapter<NoteViewHolder>(), Filterable {
 
-    private lateinit var mListner: onItemClickListner
+    private lateinit var mListner: OnItemClickListner
     var filteredNotes: ArrayList<NotesKey> = ArrayList()
 
     init {
         filteredNotes = notes as ArrayList<NotesKey>
     }
 
-    interface onItemClickListner {
-        fun onItemClick(position: Int)
-    }
-
-    fun setOnItemClickListner(listener: onItemClickListner) {
+    fun setOnItemClickListner(listener: OnItemClickListner) {
         mListner = listener
-
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.grid_layout, parent, false)
-        return TodoViewHolder(view, mListner)
+        return NoteViewHolder(view, mListner)
     }
 
-    override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
-        val title = holder.itemView.findViewById<TextView>(R.id.gridTitle)
-        val note = holder.itemView.findViewById<TextView>(R.id.gridNote)
-        val remainder = holder.itemView.findViewById<TextView>(R.id.gridRemainder)
-
-        holder.itemView.apply {
-            title.text = filteredNotes[position].title
-            note.text = filteredNotes[position].note
-            if(filteredNotes[position].remainder == 0L){
-                remainder.visibility = View.GONE
-            }
-            else if(filteredNotes[position].remainder > 0){
-                remainder.isVisible = true
-                remainder.text = millisToDate(filteredNotes[position].remainder)
-            }
-        }
-
+    override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
+        val item = filteredNotes[position]
+        holder.bind(item)
     }
 
     override fun getItemCount(): Int {
@@ -99,12 +68,6 @@ class NoteAdapter(
                 filteredNotes = results?.values as ArrayList<NotesKey>
                 notifyDataSetChanged()
             }
-
         }
     }
-    private fun millisToDate(millis: Long): String {
-        return SimpleDateFormat(Constants.DATE_FORMAT, Locale.US).format(Date(millis))
-    }
-
-
 }

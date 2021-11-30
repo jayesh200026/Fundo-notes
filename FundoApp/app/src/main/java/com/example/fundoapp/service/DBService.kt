@@ -35,7 +35,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                     NoteEntity(uid = uid, fid = id, title = title, note = note, modifiedTime = time)
                 roomAdditionStatus = roomAddNote(sqlNote)
                 status && roomAdditionStatus
-
             } else {
                 val sqlNote =
                     NoteEntity(uid = uid, fid = id, title = title, note = note, modifiedTime = time)
@@ -47,13 +46,11 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
 
 
     fun roomAddNote(sqlNote: NoteEntity): Boolean {
-//        roomDB.noteDao.insertNote(sqlNote)
         val insertStatus = roomDB.noteDao.insertNote(sqlNote)
         return insertStatus > 0
     }
 
     suspend fun readNotes(): MutableList<NotesKey> {
-
         return withContext(Dispatchers.IO) {
             var tempList = mutableListOf<NotesKey>()
             val uid = Authentication.getCurrentUid()
@@ -89,7 +86,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     }
 
     fun addNotesFromFBtoRoom(i: NotesKey, uid: String) {
-
         val title = i.title
         val note = i.note
         val fid = i.key
@@ -109,8 +105,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
 
         )
         roomDB.noteDao.insertNote(roomNote)
-
-
     }
 
 
@@ -295,57 +289,55 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     suspend fun createLabel(label: String): Label {
         val time = System.currentTimeMillis().toString()
         return withContext(Dispatchers.IO) {
-
             val fbStatus = FirebaseDatabase.createLabel(label, time)
-
             fbStatus
         }
     }
 
     suspend fun readLabels(): List<Label> {
-
         return withContext(Dispatchers.IO) {
-
             val labelList = FirebaseDatabase.readLabels()
-
             labelList
         }
     }
 
-    suspend fun addLabelsToNotes(list: MutableList<LabelEntity>): Boolean {
+    suspend fun deleteLabel(labelEntity: Label): Boolean {
+        return withContext(Dispatchers.IO) {
+            val deletelabelStatus = FirebaseDatabase.deleteLabel(labelEntity.labelId)
+            if(deletelabelStatus){
+                FirebaseDatabase.deleteNoteLabel(labelEntity.labelId)
+            }
+            deletelabelStatus
+        }
+    }
+
+    suspend fun updateLabel(labelEntity: Label, newLabel: String): Boolean {
+        val networkStatus = NetworkHandler.checkForInternet(context)
+        return withContext(Dispatchers.IO) {
+            FirebaseDatabase.updateLabel(labelEntity.labelId, newLabel)
+        }
+    }
+
+
+    suspend fun addLabelsToNotes(list: MutableList<Label>): Boolean {
         return withContext(Dispatchers.IO) {
             val key = SharedPref.get("key")
             val time = System.currentTimeMillis().toString()
             if (key != null) {
+//                    val labelList = FirebaseDatabase.getLabelsOfNote(key)
+//                for(label in labelList){
+//                    if(! (label in list)){
+//
+//                    }
+//                }
                 for (i in 0 until list.size) {
                     val note = NoteLabels(key, list[i].labelId)
                     val fbStatus = FirebaseDatabase.addLabelsToNote(note, time)
-                    val notelabel = NoteLabelEntity(noteID = key, labelId = list[i].labelId)
-                    val roomStatus = roomDB.noteLabelDao.addNoteLabelRelationship(notelabel)
-                    fbStatus && roomStatus > 0
+                    fbStatus
                 }
             }
             false
         }
-
-
-    }
-
-    suspend fun deleteLabel(labelEntity: Label): Boolean {
-
-        return withContext(Dispatchers.IO) {
-            val deletelabelStatus = FirebaseDatabase.deleteLabel(labelEntity.labelId)
-            deletelabelStatus
-        }
-
-    }
-
-    suspend fun updateLabel(labelEntity: Label, newLabel: String): Boolean {
-
-        return withContext(Dispatchers.IO) {
-            FirebaseDatabase.updateLabel(labelEntity.labelId, newLabel)
-        }
-
     }
 
     suspend fun clearTables() {
@@ -369,7 +361,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
 
 
     suspend fun fillNotes() {
-
         runBlocking {
             val uid = Authentication.getCurrentUid()
             if (uid != null) {
@@ -385,8 +376,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 }
             }
         }
-
-
     }
 
     suspend fun fillToRoomDB() {
@@ -506,5 +495,4 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
         }
         return tempList
     }
-
 }

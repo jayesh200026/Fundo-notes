@@ -8,14 +8,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.fundoapp.roomdb.entity.LabelEntity
 import com.example.fundoapp.roomdb.entity.NoteLabelEntity
 import com.example.fundoapp.service.DBService
+import com.example.fundoapp.service.model.Label
 import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.ui.MainActivity
 import kotlinx.coroutines.launch
 
 class AddLabelViewModel : ViewModel() {
-    private val _readLabelsFromDatabaseStatus = MutableLiveData<MutableList<LabelEntity>>()
+    private val _readLabelsFromDatabaseStatus = MutableLiveData<MutableList<Label>>()
     var readLabelsFromDatabaseStatus =
-        _readLabelsFromDatabaseStatus as LiveData<MutableList<LabelEntity>>
+        _readLabelsFromDatabaseStatus as LiveData<MutableList<Label>>
 
     private val _readNotesLabelsFromDatabaseStatus = MutableLiveData<MutableList<NoteLabelEntity>>()
     var readNotesLabelsFromDatabaseStatus =
@@ -28,11 +29,11 @@ class AddLabelViewModel : ViewModel() {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
             val list = dbService.readLabels()
-            _readLabelsFromDatabaseStatus.value = list as MutableList<LabelEntity>
+            _readLabelsFromDatabaseStatus.value = list as MutableList<Label>
         }
     }
 
-    fun addLables(list: MutableList<LabelEntity>, context: Context) {
+    fun addLables(list: MutableList<Label>, context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
             val status = dbService.addLabelsToNotes(list)

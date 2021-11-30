@@ -24,19 +24,16 @@ object NotificationHelper {
         description: String
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
             val channelId = Constants.CHANNEL_ID
             val channel = NotificationChannel(channelId, name, importance)
             channel.description = description
             channel.setShowBadge(showBadge)
-
             val notificationManager = context.getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
     }
 
-    fun createSampleDataNotification(context: Context, note :NotesKey) {
-
+    fun createSampleDataNotification(context: Context, note: NotesKey) {
         val channelId = Constants.CHANNEL_ID
         val notificationBuilder = NotificationCompat.Builder(context, channelId).apply {
             setSmallIcon(R.drawable.ic_baseline_notifications)
@@ -44,29 +41,17 @@ object NotificationHelper {
             setContentText(note.note)
             priority = NotificationCompat.PRIORITY_DEFAULT
             setAutoCancel(true)
-
             val bundle = Bundle().apply {
-                putString("Destination","userNote")
-                putSerializable("reminderNote",note)
+                putString("Destination", "userNote")
+                putSerializable("reminderNote", note)
             }
-
             val intent = Intent(context, MainActivity::class.java)
-            //intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-
             intent.putExtras(bundle)
-
-            //intent.putExtra("Destination","userNote")
-//            intent.putExtra("reminderNote",note)
-            val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val pendingIntent =
+                PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
             setContentIntent(pendingIntent)
-
         }
         val notificationManager = NotificationManagerCompat.from(context)
-
         notificationManager.notify(1001, notificationBuilder.build())
     }
-
-
-
-
 }

@@ -10,5 +10,6 @@
     <string name="noteUpdationFailed">updation failed</string>
     <string name="noteDeletionFailed">deletion failed</string>
     <string name="invalidRemainder">Remainder can be set only for future</string>
+    <string name="default_notification_channel_id">Reminder</string>
 
 </resources>

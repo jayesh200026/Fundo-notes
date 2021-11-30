@@ -78,7 +78,6 @@ class FirebaseDatabase {
                         .orderByChild(Constants.COLUMN_MODIFIEDTIME)
                         .addValueEventListener(object : ValueEventListener {
                             override fun onDataChange(it: DataSnapshot) {
-
                                 Log.d("READNOTE", "reading notes")
                                 if (it.exists()) {
                                     for (i in it.children) {
@@ -110,51 +109,14 @@ class FirebaseDatabase {
                                     cont.resumeWith(Result.success(list))
                                 }
                             }
-
                             override fun onCancelled(error: DatabaseError) {
                                 Log.d("READNOTE", "failed reading notes")
                                 cont.resumeWith(Result.failure(error.toException()))
                             }
                         })
                 }
-
-
             }
         }
-
-//        suspend fun readNotes(): MutableList<NotesKey> {
-//
-//            return suspendCoroutine { cont ->
-//                var list = mutableListOf<NotesKey>()
-//                val uid = Authentication.getCurrentUid()
-//                if (uid != null) {
-//                    val database =
-//                        FirebaseDatabase.getInstance().getReference(Constants.NOTES_TABLE)
-//                    database.child(uid)
-//                        .get()
-//                        .addOnSuccessListener {
-//                            if (it.exists()) {
-//                                for (i in it.children) {
-//                                    val title = i.child(Constants.COLUMN_TITLE).value.toString()
-//                                    val note = i.child(Constants.COLUMN_NOTE).value.toString()
-//                                    val key = i.key
-//                                    val deleted = i.child(Constants.COLUMN_DELETED).value
-//                                    val archived=i.child(Constants.COLUMN_ARCHIVED).value == true
-//                                    val deletedStatus = deleted == true
-//                                    val mTime =
-//                                        i.child(Constants.COLUMN_MODIFIEDTIME).value.toString()
-//                                    val userNote =
-//                                        NotesKey(title, note, key!!, deletedStatus,archived, mTime)
-//                                    list.add(userNote)
-//                                }
-//                                cont.resumeWith(
-//                                    Result.success(list)
-//                                )
-//                            }
-//                        }
-//                }
-//            }
-//        }
 
         suspend fun updateNote(note: NotesKey): Boolean {
             val userNote = Notes(note.title, note.note, note.deleted, note.archived, note.mTime,note.remainder)
@@ -206,12 +168,11 @@ class FirebaseDatabase {
                             }
                         }
                 }
-
             }
-
         }
 
         suspend fun addLabelsToNote(note: NoteLabels, time: String): Boolean {
+
             return suspendCoroutine { cont ->
                 val uid = Authentication.getCurrentUid()
                 if (uid != null) {
@@ -228,7 +189,6 @@ class FirebaseDatabase {
                         }
                 }
             }
-
         }
 
         suspend fun deleteLabel(labelId: String): Boolean {
@@ -267,8 +227,6 @@ class FirebaseDatabase {
                         }
                 }
             }
-
-
         }
 
         suspend fun getKeys(pattern: String): MutableList<String> {
@@ -290,6 +248,32 @@ class FirebaseDatabase {
                                     }
                                 }
                                 cont.resumeWith(Result.success(list))
+                            }
+                        }
+                }
+            }
+        }
+
+        suspend fun getLabelsOfNote(note: String):MutableList<String>{
+            return suspendCoroutine {cont ->
+                val uid = Authentication.getCurrentUid()
+                val list = mutableListOf<String>()
+                if(uid!=null) {
+                    FirebaseDatabase.getInstance().getReference(Constants.NOTE_LABEL_TABLE)
+                        .child(uid)
+                        .get()
+                        .addOnSuccessListener {
+                            if(it.exists()){
+                                for(i in it.children){
+                                    val key = i.key
+                                    if(key != null){
+                                        if(key.contains(note)){
+                                            val label = i.child("label").value.toString()
+                                            list.add(label)
+                                        }
+                                    }
+                                }
+                            cont.resumeWith(Result.success(list))
                             }
                         }
                 }
@@ -321,7 +305,6 @@ class FirebaseDatabase {
         suspend fun readLabels(): MutableList<Label> {
             return suspendCoroutine { cont ->
                 var list = mutableListOf<Label>()
-
                 val uid = Authentication.getCurrentUid()
                 if (uid != null) {
                     FirebaseDatabase.getInstance().getReference(Constants.LABEL_TABLE)
@@ -337,12 +320,10 @@ class FirebaseDatabase {
                                     list.add(Label(labelId = key, labelName = label))
                                 }
                                 cont.resumeWith(Result.success(list))
-
                             }
                         }
                 }
             }
-
         }
 
         suspend fun getNoteLabelRel(): MutableList<NoteLabelEntity> {
@@ -361,10 +342,7 @@ class FirebaseDatabase {
                                 list.add(noteLabel)
                             }
                             cont.resumeWith(Result.success(list))
-
-
                         }
-
                 }
             }
         }
@@ -377,7 +355,6 @@ class FirebaseDatabase {
                 query.addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(it: DataSnapshot) {
                         if (it.exists()) {
-
                             for (i in it.children) {
                                 val title = i.child(Constants.COLUMN_TITLE).value.toString()
                                 val note = i.child(Constants.COLUMN_NOTE).value.toString()
@@ -413,11 +390,8 @@ class FirebaseDatabase {
                             cont.resumeWith(Result.success(mutableListOf<NotesKey>()))
                         }
                     }
-
                     override fun onCancelled(error: DatabaseError) {
-
                     }
-
                 })
             }
         }

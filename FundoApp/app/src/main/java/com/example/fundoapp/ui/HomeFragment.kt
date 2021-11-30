@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.ui.adapters.NoteAdapter
 import com.example.fundoapp.util.Constants
 import com.example.fundoapp.util.SharedPref
 import com.squareup.picasso.Picasso
@@ -56,13 +57,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     lateinit var adapter: NoteAdapter
     lateinit var navMenu: NavigationView
     lateinit var progressBar: ProgressBar
-
-    //lateinit var linearAdpater: NoteAdpaterLinear
     lateinit var gridrecyclerView: RecyclerView
+    private lateinit var sharedViewModel: SharedViewModel
+    private lateinit var profileViewModel: HomeViewModel
 
     var noteList = mutableListOf<NotesKey>()
     var tempList = mutableListOf<NotesKey>()
-
     var startTime = ""
     var offset = 0
     var noteListSize = 0
@@ -70,22 +70,15 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     var currentItem: Int = 0
     var totalItem: Int = 0
     var scrolledOutItems: Int = 0
-
-
-    private lateinit var sharedViewModel: SharedViewModel
-    private lateinit var profileViewModel: HomeViewModel
     var email: String? = null
     var fullName: String? = null
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         val view = inflater.inflate(R.layout.fragment_home, container, false)
         (requireActivity() as AppCompatActivity).supportActionBar?.show()
-
         initializeViewModels()
         initializeVar(view)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -99,16 +92,11 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         checkLayout()
         takePhoto()
         onClickListeners()
-
         searchNote()
-
         searchview.setOnCloseListener(this)
-
         gridrecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-
                 if (SharedPref.get(Constants.LAYOUT) == "" ||
                     SharedPref.get(Constants.LAYOUT) == Constants.GRID
                 ) {
@@ -153,7 +141,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                 }
             }
         })
-
         return view
     }
 
@@ -164,7 +151,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
     private fun readNotes() {
         profileViewModel.readNotes(startTime, offset, requireContext())
     }
-
 
     private fun initializeViewModels() {
         sharedViewModel = ViewModelProvider(
@@ -203,13 +189,11 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         gridrecyclerView = view.findViewById(R.id.rvNotes)
         progressBar = view.findViewById(R.id.rvProgressBar)
         adapter = NoteAdapter(tempList)
-        //linearAdpater = NoteAdpaterLinear(tempList)
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : OnItemClickListner{
             override fun onItemClick(position: Int) {
-
                 setValuesForUpdation(position)
                 Toast.makeText(
                     requireContext(),
@@ -218,9 +202,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                 ).show()
                 sharedViewModel.setGotoAddNotesPage(true)
             }
-
         })
-
     }
 
 
@@ -230,14 +212,12 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             layout.isVisible = false
             searchBar.isVisible = false
             searchview.maxWidth = Integer.MAX_VALUE
-
         }
 
         searchview.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 TODO("Not yet implemented")
             }
-
             override fun onQueryTextChange(newText: String?): Boolean {
                 adapter.filter.filter(newText)
                 return false
@@ -354,37 +334,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             dialogEmail.text = email
             dialogUsername.text = fullName
         }
-//        profileViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
-//            noteList.clear()
-//            tempList.clear()
-//            gridrecyclerView.isVisible = false
-//            for (i in it.size - 1 downTo 0) {
-//                if (!it[i].deleted && !it[i].archived) {
-//                    noteList.add(it[i])
-//                }
-//            }
-//            tempList.addAll(noteList)
-//            SharedPref.addNoteSize("noteSize", noteList.size)
-//
-//            if (SharedPref.get("counter") == "") {
-//                //recyclerView.isVisible=false
-//                gridrecyclerView.adapter = adapter
-//                adapter.notifyItemInserted(noteList.size - 1)
-//                gridrecyclerView.isVisible = true
-//            } else if (SharedPref.get("counter") == "true") {
-//                gridrecyclerView.isVisible = false
-//                gridrecyclerView.layoutManager = LinearLayoutManager(requireContext())
-//
-//                gridrecyclerView.isVisible = true
-//            } else if (SharedPref.get("counter") == "false") {
-//                gridrecyclerView.isVisible = false
-//                gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-//                adapter.notifyItemInserted(noteList.size - 1)
-//                gridrecyclerView.adapter = adapter
-//                gridrecyclerView.isVisible = true
-//            }
-//            Log.d("reading notes", "Size of note  list is" + noteList.size)
-//        }
     }
 
 
@@ -418,7 +367,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
                 gridrecyclerView,
                 adapter
             )
-            //loadNotesInLayoutType()
         }
 
         addNoteFAB.setOnClickListener {
@@ -448,8 +396,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         } else {
             Picasso.get().load(photoUri).into(dialogProfile)
         }
-
-
         dialog.window?.setBackgroundDrawable(
             getDrawable(
                 requireContext(),
@@ -472,7 +418,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         } else {
             Picasso.get().load(photoUri).into(userIcon)
         }
-//        userIcon?.setImageResource(R.drawable.man)
     }
 
     private fun getUserDetails() {
@@ -485,7 +430,6 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         searchBar.isVisible = true
         return false
     }
-
 
 }
 

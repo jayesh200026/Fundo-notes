@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
-import com.example.fundoapp.ui.NoteAdapter
+import com.example.fundoapp.ui.adapters.NoteAdapter
 import com.example.fundoapp.ui.RemainderAdapter
 
 class Utillity{

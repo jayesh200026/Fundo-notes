@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.ui.adapters.NoteAdapter
 import com.example.fundoapp.util.Constants
 import com.example.fundoapp.util.SharedPref
 import com.example.fundoapp.util.Utillity
@@ -36,11 +38,11 @@ class ArchivedNotesFragment : Fragment() {
     lateinit var adapter: NoteAdapter
     lateinit var gridrecyclerView: RecyclerView
     lateinit var sharedViewModel: SharedViewModel
-    lateinit var archivedViewModel:ArchiveViewModel
+    lateinit var archivedViewModel: ArchiveViewModel
+    lateinit var progressBar: ProgressBar
 
     var noteList = mutableListOf<NotesKey>()
     var tempList = mutableListOf<NotesKey>()
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,7 +57,7 @@ class ArchivedNotesFragment : Fragment() {
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
 
-        archivedViewModel=ViewModelProvider(
+        archivedViewModel = ViewModelProvider(
             this,
             ArchiveViewModelFactory()
         )[ArchiveViewModel::class.java]
@@ -66,10 +68,11 @@ class ArchivedNotesFragment : Fragment() {
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
-        archive=requireActivity().findViewById(R.id.archiveImage)
+        archive = requireActivity().findViewById(R.id.archiveImage)
         remainder = requireActivity().findViewById(R.id.remainder)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
+        progressBar = view.findViewById(R.id.rvProgressBar)
         adapter = NoteAdapter(tempList)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addNoteFAB.isVisible = false
@@ -91,9 +94,8 @@ class ArchivedNotesFragment : Fragment() {
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : OnItemClickListner {
             override fun onItemClick(position: Int) {
-
                 setValuesForUpdation(position)
                 Toast.makeText(
                     requireContext(),
@@ -102,9 +104,7 @@ class ArchivedNotesFragment : Fragment() {
                 ).show()
                 sharedViewModel.setGotoAddNotesPage(true)
             }
-
         })
-
     }
 
     private fun setValuesForUpdation(position: Int) {
@@ -113,16 +113,16 @@ class ArchivedNotesFragment : Fragment() {
         SharedPref.addString("title", noteList[position].title)
         SharedPref.addString("note", noteList[position].note)
         SharedPref.addString("key", noteList[position].key)
-        SharedPref.addString(Constants.IS_ARCHIVED,"true")
-        SharedPref.addBoolean(Constants.COLUMN_ARCHIVED,noteList[position].archived)
-        SharedPref.addBoolean(Constants.COLUMN_DELETED,noteList[position].deleted)
+        SharedPref.addString(Constants.IS_ARCHIVED, "true")
+        SharedPref.addBoolean(Constants.COLUMN_ARCHIVED, noteList[position].archived)
+        SharedPref.addBoolean(Constants.COLUMN_DELETED, noteList[position].deleted)
     }
 
     private fun observe() {
         archivedViewModel.readNotesFromDatabaseStatus.observe(viewLifecycleOwner) {
             noteList.clear()
             tempList.clear()
-            gridrecyclerView.adapter=adapter
+            gridrecyclerView.adapter = adapter
             for (i in 0 until it.size) {
                 if (it[i].archived) {
                     noteList.add(it[i])
@@ -130,6 +130,7 @@ class ArchivedNotesFragment : Fragment() {
             }
             tempList.addAll(noteList)
             gridrecyclerView.adapter?.notifyDataSetChanged()
+            progressBar.isVisible = false
         }
     }
 
@@ -137,14 +138,14 @@ class ArchivedNotesFragment : Fragment() {
         archivedViewModel.readNotesFromDatabase(requireContext())
     }
 
-     private fun toolbarHandling() {
+    private fun toolbarHandling() {
         userIcon.isVisible = true
         layout.isVisible = true
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
-         archive.isVisible=false
-         remainder.isVisible = false
+        archive.isVisible = false
+        remainder.isVisible = false
         val toggle = ActionBarDrawerToggle(
             requireActivity(),
             requireActivity().findViewById(R.id.drawerLayout),

@@ -51,19 +51,19 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
     lateinit var saveBtn: FloatingActionButton
     private lateinit var sharedViewModel: SharedViewModel
     lateinit var addNoteViewModel: AddNoteViewModel
-
+    lateinit var addLabelBtn: Button
 
     var day = 0
     var year = 0
     var month = 0
     var hour = 0
     var minute = 0
-
     var savedDay = 0
     var savedYear = 0
     var savedMonth = 0
     var savedHour = 0
     var savedMinute = 0
+    var timeInMilli = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,7 +80,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
             this,
             AddNoteViewModelFactory()
         )[AddNoteViewModel::class.java]
-
         observe()
         initializeVar(view)
         handleToolbar()
@@ -102,9 +101,9 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         saveBtn.setOnClickListener(this)
         savetext.setOnClickListener(this)
         deleteBtn.setOnClickListener(this)
-
         archive.setOnClickListener(this)
         remainder.setOnClickListener(this)
+        addLabelBtn.setOnClickListener(this)
     }
 
     private fun handleToolbar() {
@@ -122,9 +121,6 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
             archive.setImageResource(R.drawable.ic_baseline_archive_24)
             archive.isVisible = true
         }
-
-
-
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
             SharedPref.setUpdateStatus("updateStatus", false)
@@ -145,6 +141,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         note = view.findViewById(R.id.userNote)
         saveBtn = view.findViewById(R.id.saveFAB)
         savetext = view.findViewById(R.id.saveText)
+        addLabelBtn = view.findViewById(R.id.addLabelBtn)
         toolbar = requireActivity().findViewById(R.id.myToolbar)
     }
 
@@ -210,6 +207,14 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         addNoteViewModel.remainderStatus.observe(viewLifecycleOwner) {
             SharedPref.setUpdateStatus("updateStatus", false)
             if (it) {
+                val context = requireContext()
+                val titleText = title.text.toString()
+                val noteText = note.text.toString()
+                val key = SharedPref.get("key")
+                val deleted = SharedPref.getBoolean(Constants.COLUMN_DELETED)
+                val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
+                val note = NotesKey(titleText, noteText, key!!, deleted, archived, "")
+                scheduleNotification(note,timeInMilli)
                 sharedViewModel.setGotoHomePageStatus(true)
             }
         }
@@ -237,6 +242,9 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
             }
             R.id.remainder -> {
                 pickDate()
+            }
+            R.id.addLabelBtn -> {
+                sharedViewModel.setGotoAddLabelsPagesStatus(true)
             }
         }
     }
@@ -331,7 +339,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
 
         val cal = Calendar.getInstance()
         cal.set(savedYear, savedMonth, savedDay, savedHour, savedMinute, 0)
-        val timeInMilli = cal.timeInMillis
+        timeInMilli = cal.timeInMillis
         val date = millisToDate(timeInMilli)
 
         if (timeInMilli > System.currentTimeMillis()) {
@@ -350,15 +358,14 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         val archived = SharedPref.getBoolean(Constants.COLUMN_ARCHIVED)
         val note = NotesKey(titleText, noteText, key!!, deleted, archived, "")
         if (titleText.isNotEmpty() && noteText.isNotEmpty()) {
-            scheduleNotification(note,timeInMilli)
             addNoteViewModel.addRemainder(note, context, timeInMilli)
+            //scheduleNotification(note,timeInMilli)
         }
     }
 
     private fun scheduleNotification(i: NotesKey,timeInMilli: Long) {
         Log.d("Notification","scheduling notification")
         val currentTime = System.currentTimeMillis()
-
         val reminder = timeInMilli
         val delay = reminder - currentTime
         if (delay > 0) {
@@ -380,15 +387,12 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
                 .setInitialDelay(delay, TimeUnit.MILLISECONDS)
                 .build()
 
-            //WorkManager.getInstance(this).enqueue(request)
             WorkManager.getInstance(requireActivity()).enqueueUniqueWork(
                 i.key,
                 ExistingWorkPolicy.REPLACE,
                 request
             )
         }
-
-
     }
 
     private fun getDateTimeCalender() {

@@ -4,23 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/addNote"
+    android:background="#00ffdf"
     tools:context=".ui.AddNotesFragment">
 
     <EditText
         android:id="@+id/noteTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="84dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
-        android:inputType="textPersonName"
         android:hint="Title"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
+        android:inputType="textPersonName"
         android:padding="10sp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         android:textSize="20sp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.442"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,15 +30,16 @@
         android:id="@+id/userNote"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="Note"
         android:inputType="textMultiLine"
         android:padding="10dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/noteTitle" />
 
@@ -68,7 +69,15 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/saveFAB" />
 
-
+    <Button
+        android:id="@+id/addLabelBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:text="Add Labels"
+        app:layout_constraintBottom_toBottomOf="@+id/saveFAB"
+        app:layout_constraintEnd_toStartOf="@+id/saveFAB"
+        app:layout_constraintTop_toTopOf="@+id/saveFAB" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

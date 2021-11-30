@@ -16,24 +16,28 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.roomdb.entity.LabelEntity
+import com.example.fundoapp.service.model.Label
+import com.example.fundoapp.ui.adapters.LabelToNoteAdapter
 import com.example.fundoapp.util.SharedPref
 import com.example.fundoapp.viewModel.AddLabelViewModel
 import com.example.fundoapp.viewModel.AddLabelViewModelFactory
+import com.example.fundoapp.viewModel.SharedViewModel
+import com.example.fundoapp.viewModel.SharedViewModelFactory
 
 
-class AddLabelFragment : Fragment() {
+class AddLabelToNoteFragment : Fragment() {
     lateinit var toolbar: Toolbar
     lateinit var userIcon: ImageView
     lateinit var gridorLinear: ImageView
     lateinit var searchBar: TextView
     lateinit var searchview: SearchView
     lateinit var deleteBtn: ImageView
-
     lateinit var labelRV: RecyclerView
-    lateinit var labelAdapter: LabelAdapter
+    lateinit var labelToNoteAdapter: LabelToNoteAdapter
+    private lateinit var sharedViewModel: SharedViewModel
     lateinit var fabBtn: View
     lateinit var addLabelViewModel: AddLabelViewModel
-    var labelsList = mutableListOf<LabelEntity>()
+    var labelsList = mutableListOf<Label>()
     var selectedLabels = mutableListOf<String>()
 
     override fun onCreateView(
@@ -43,17 +47,21 @@ class AddLabelFragment : Fragment() {
 
         val view = inflater.inflate(R.layout.fragment_add_label, container, false)
         labelRV = view.findViewById(R.id.rvLabels)
-        labelAdapter = LabelAdapter(labelsList, selectedLabels)
+        labelToNoteAdapter = LabelToNoteAdapter(labelsList, selectedLabels)
         labelRV.layoutManager = LinearLayoutManager(requireContext())
-        labelRV.adapter = labelAdapter
-        addLabelViewModel =
-            ViewModelProvider(this, AddLabelViewModelFactory())[AddLabelViewModel::class.java]
+        labelRV.adapter = labelToNoteAdapter
+        addLabelViewModel = ViewModelProvider(this,
+            AddLabelViewModelFactory())[AddLabelViewModel::class.java]
+        sharedViewModel = ViewModelProvider(
+            requireActivity(),
+            SharedViewModelFactory()
+        )[SharedViewModel::class.java]
         handleToolbar()
         readLabels()
         readNoteslabelRelation()
         fabBtn = view.findViewById(R.id.saveLabelFab)
         fabBtn.setOnClickListener {
-            val list = labelAdapter.getSelectedList()
+            val list = labelToNoteAdapter.getSelectedList()
             addLabelViewModel.addLables(list, requireContext())
         }
         addLabelViewModel.readLabelsFromDatabaseStatus.observe(viewLifecycleOwner) {
@@ -61,7 +69,7 @@ class AddLabelFragment : Fragment() {
             for (i in 0..it.size - 1) {
                 labelsList.add(it[i])
                 Log.d("size", it.size.toString())
-                labelAdapter.notifyItemInserted(labelsList.size - 1)
+                labelToNoteAdapter.notifyItemInserted(labelsList.size - 1)
             }
         }
         addLabelViewModel.readNotesLabelsFromDatabaseStatus.observe(viewLifecycleOwner) {
@@ -71,7 +79,6 @@ class AddLabelFragment : Fragment() {
                     selectedLabels.add(it[i].labelId)
                 }
             }
-            //labelAdapter.notifyDataSetChanged()
         }
         return view
     }
@@ -96,13 +103,10 @@ class AddLabelFragment : Fragment() {
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
-
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
             SharedPref.setUpdateStatus("updateStatus", false)
-            activity?.onBackPressed()
+            sharedViewModel.setGotoHomePageStatus(true)
         }
     }
-
-
 }

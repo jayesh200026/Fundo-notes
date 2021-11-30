@@ -24,7 +24,7 @@ object Constants {
 
     const val LAYOUT = "layout"
 
-    const val CHANNEL_ID = "FunDoNotes"
+    const val CHANNEL_ID = "Reminder"
 
     const val DATE_FORMAT = "dd/MM/yy hh:mm"
 

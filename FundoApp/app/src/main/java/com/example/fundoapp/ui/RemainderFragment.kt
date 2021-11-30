@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -19,8 +20,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
-import com.example.fundoapp.util.Constants
-import com.example.fundoapp.util.SharedPref
+import com.example.fundoapp.ui.adapters.NoteAdapter
 import com.example.fundoapp.util.Utillity
 import com.example.fundoapp.viewModel.*
 
@@ -38,7 +38,7 @@ class RemainderFragment : Fragment() {
     lateinit var gridrecyclerView: RecyclerView
     lateinit var sharedViewModel: SharedViewModel
     lateinit var remainderViewModel: RemainderViewModel
-
+    lateinit var progressBar: ProgressBar
 
     var noteList = mutableListOf<NotesKey>()
     var tempList = mutableListOf<NotesKey>()
@@ -47,7 +47,6 @@ class RemainderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         sharedViewModel = ViewModelProvider(
@@ -60,10 +59,8 @@ class RemainderFragment : Fragment() {
             RemainderViewModelFactory()
         )[RemainderViewModel::class.java]
 
-
         userIcon = requireActivity().findViewById(R.id.userProfile)
         layout = requireActivity().findViewById(R.id.notesLayout)
-
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
@@ -71,6 +68,7 @@ class RemainderFragment : Fragment() {
         addNoteFAB = view.findViewById(R.id.floatingButton)
         remainder = requireActivity().findViewById(R.id.remainder)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
+        progressBar = view.findViewById(R.id.rvProgressBar)
         adapter = NoteAdapter(tempList)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addNoteFAB.isVisible = false
@@ -103,11 +101,11 @@ class RemainderFragment : Fragment() {
             }
             tempList.addAll(noteList)
             gridrecyclerView.adapter?.notifyDataSetChanged()
+            progressBar.isVisible = false
         }
-        remainderViewModel.removeRemainderStatus.observe(viewLifecycleOwner){
-            if(it){
-                //sharedViewModel.setGotoHomePageStatus(true)
-               getUserNotes()
+        remainderViewModel.removeRemainderStatus.observe(viewLifecycleOwner) {
+            if (it) {
+                getUserNotes()
             }
         }
     }
@@ -118,13 +116,11 @@ class RemainderFragment : Fragment() {
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : OnItemClickListner {
             override fun onItemClick(position: Int) {
                 var alertDialog = AlertDialog.Builder(requireContext()).create()
                 alertDialog.setTitle("Remove remainder from note?")
-
                 alertDialog.setMessage(noteList[position].title + "\n" + noteList[position].note)
-
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Remove",
                     DialogInterface.OnClickListener { dialog, id ->
                         val userNote = NotesKey(
@@ -146,13 +142,9 @@ class RemainderFragment : Fragment() {
                     DialogInterface.OnClickListener { dialog, id ->
                         Toast.makeText(requireContext(), "Cancel", Toast.LENGTH_SHORT).show()
                     })
-
                 alertDialog.show()
-
             }
-
         })
-
     }
 
     private fun toolbarHandling() {
@@ -175,5 +167,4 @@ class RemainderFragment : Fragment() {
         toggle.isDrawerIndicatorEnabled = true
         toggle.syncState()
     }
-
 }

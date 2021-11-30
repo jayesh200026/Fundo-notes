@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
 import com.example.fundoapp.service.model.NotesKey
+import com.example.fundoapp.ui.adapters.NoteAdapter
 import com.example.fundoapp.viewModel.*
 import com.example.fundoapp.util.Utillity
 
@@ -36,6 +38,7 @@ class DeletedNoteFragment : Fragment() {
     lateinit var gridrecyclerView: RecyclerView
     lateinit var deleteViewModel: DeleteNoteViewModel
     lateinit var sharedViewModel: SharedViewModel
+    lateinit var progressBar: ProgressBar
 
     var noteList = mutableListOf<NotesKey>()
     var tempList = mutableListOf<NotesKey>()
@@ -57,13 +60,13 @@ class DeletedNoteFragment : Fragment() {
 
         userIcon = requireActivity().findViewById(R.id.userProfile)
         layout = requireActivity().findViewById(R.id.notesLayout)
-
         searchBar = requireActivity().findViewById(R.id.searchNotes)
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
         addNoteFAB = view.findViewById(R.id.floatingButton)
         gridrecyclerView = view.findViewById(R.id.rvNotes)
-        archive=requireActivity().findViewById(R.id.archiveImage)
+        progressBar = view.findViewById(R.id.rvProgressBar)
+        archive = requireActivity().findViewById(R.id.archiveImage)
         adapter = NoteAdapter(tempList)
         gridrecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         addNoteFAB.isVisible = false
@@ -77,11 +80,8 @@ class DeletedNoteFragment : Fragment() {
                 layout,
                 gridrecyclerView,
                 adapter
-
             )
         }
-
-
         return view
     }
 
@@ -97,6 +97,7 @@ class DeletedNoteFragment : Fragment() {
             }
             tempList.addAll(noteList)
             gridrecyclerView.adapter?.notifyDataSetChanged()
+            progressBar.isVisible = false
         }
 
         deleteViewModel.restoreNoteStatus.observe(viewLifecycleOwner) {
@@ -116,21 +117,24 @@ class DeletedNoteFragment : Fragment() {
     }
 
     private fun adapterListener() {
-        adapter.setOnItemClickListner(object : NoteAdapter.onItemClickListner {
+        adapter.setOnItemClickListner(object : OnItemClickListner {
             override fun onItemClick(position: Int) {
                 var alertDialog = AlertDialog.Builder(requireContext()).create()
-
                 alertDialog.setTitle(noteList[position].title)
-
                 alertDialog.setMessage(noteList[position].note)
-
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Restore",
                     DialogInterface.OnClickListener { dialog, id ->
-                        val userNote = NotesKey(title = noteList[position].title,note = noteList[position].note,
-                        key = noteList[position].key,deleted = noteList[position].deleted,archived = noteList[position].archived,
-                        mTime = noteList[position].mTime,remainder = noteList[position].remainder)
+                        val userNote = NotesKey(
+                            title = noteList[position].title,
+                            note = noteList[position].note,
+                            key = noteList[position].key,
+                            deleted = noteList[position].deleted,
+                            archived = noteList[position].archived,
+                            mTime = noteList[position].mTime,
+                            remainder = noteList[position].remainder
+                        )
                         deleteViewModel.restoreNote(
-                            requireContext(),userNote
+                            requireContext(), userNote
                         )
                         Toast.makeText(requireContext(), "Restore", Toast.LENGTH_SHORT).show()
                     })
@@ -148,7 +152,6 @@ class DeletedNoteFragment : Fragment() {
 
                 alertDialog.show()
             }
-
         })
     }
 
@@ -171,6 +174,4 @@ class DeletedNoteFragment : Fragment() {
         toggle.isDrawerIndicatorEnabled = true
         toggle.syncState()
     }
-
-
 }

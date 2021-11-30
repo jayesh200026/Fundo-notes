@@ -2,6 +2,7 @@ package com.example.fundoapp.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
 import android.os.Build
@@ -12,6 +13,7 @@ import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
@@ -19,20 +21,19 @@ import androidx.room.Room
 import androidx.work.*
 import com.example.fundoapp.*
 import com.example.fundoapp.R
+import com.example.fundoapp.service.*
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.example.fundoapp.viewModel.SharedViewModel
 import com.example.fundoapp.viewModel.SharedViewModelFactory
-import com.example.fundoapp.service.Authentication
-import com.example.fundoapp.service.NotificationWorker
-import com.example.fundoapp.service.RoomDatabase
 import com.example.fundoapp.util.SharedPref
-import com.example.fundoapp.service.SyncWorker
 import com.example.fundoapp.service.model.NotesKey
 import com.example.fundoapp.util.Constants
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import java.util.concurrent.TimeUnit
 import com.google.firebase.messaging.ktx.messaging
+import com.google.android.gms.tasks.OnCompleteListener
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -67,43 +68,51 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         navMenu.setNavigationItemSelectedListener(this)
-
-
-
         SharedPref.initSharedPref(this)
-
         sharedViewModel = ViewModelProvider(
             this@MainActivity,
             SharedViewModelFactory()
         )[SharedViewModel::class.java]
-
-
         val bundle = intent.extras
         observeNavigation()
         if (savedInstanceState == null && bundle == null) {
             gotoSplashScreen()
         }
-
+        NotificationHelper.createNotificationChannel(
+            this,
+            NotificationManagerCompat.IMPORTANCE_DEFAULT, false,
+            "reminder notes", "App notification channel."
+        )
         readNotes()
+        getFirebaseMessagingToken()
         subscribe()
+    }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val bundle = intent?.extras
         if (bundle != null) {
             Toast.makeText(this, "Inside if block", Toast.LENGTH_SHORT).show()
             if (bundle.getString("Destination") == "userNote") {
+                Toast.makeText(this, "destination is usernote", Toast.LENGTH_SHORT).show()
                 val note = bundle.getSerializable("reminderNote") as NotesKey
                 loadNotifiedNote(note)
+            } else if (bundle.getString("Destination") == "home") {
+                Toast.makeText(this, "destination is home", Toast.LENGTH_SHORT).show()
+                gotoHomePage()
             }
         }
     }
 
+
     private fun subscribe() {
         Firebase.messaging.subscribeToTopic("weather")
             .addOnCompleteListener { task ->
-
                 if (!task.isSuccessful) {
                     Toast.makeText(this, "Failed subscribing", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, " subscribed", Toast.LENGTH_SHORT).show()
                 }
-
             }
     }
 
@@ -261,7 +270,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun gotoAddLabelPage() {
         supportFragmentManager.beginTransaction().apply {
-            replace(R.id.flFragment, AddLabelFragment())
+            replace(R.id.flFragment, AddLabelToNoteFragment())
             commit()
         }
     }
@@ -412,6 +421,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
             })
         }
+
+    }
+
+    fun getFirebaseMessagingToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("firebasemessaging", "Fetching FCM registration token failed", task.exception)
+                return@OnCompleteListener
+            }
+            val token = task.result
+            Log.d("firebasemessaging", token.toString())
+        })
 
     }
 }

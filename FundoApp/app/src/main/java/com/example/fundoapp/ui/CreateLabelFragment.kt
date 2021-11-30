@@ -8,10 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
@@ -19,8 +16,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fundoapp.R
-import com.example.fundoapp.roomdb.entity.LabelEntity
 import com.example.fundoapp.service.model.Label
+import com.example.fundoapp.ui.adapters.DisplayLabelsAdapter
 import com.example.fundoapp.viewModel.LabelViewModel
 import com.example.fundoapp.viewModel.LabelViewModelFactory
 import com.example.fundoapp.viewModel.SharedViewModel
@@ -62,10 +59,8 @@ class CreateLabelFragment : Fragment() {
         saveLabel = view.findViewById(R.id.labelSaveBtn)
         recyclerView = view.findViewById(R.id.rvAllLabels)
         adapter = DisplayLabelsAdapter(list, labelViewModel, requireContext())
-
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
-
 
         saveLabel.setOnClickListener {
             hideKeyboard()
@@ -73,13 +68,26 @@ class CreateLabelFragment : Fragment() {
                 labelViewModel.createLabel(labelName.text.toString(), requireContext())
                 labelName.setText("")
                 labelName.requestFocus()
+            } else {
+                Toast.makeText(
+                    requireContext(), "Label name cannot be empty",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
         handleToolbar()
         labelViewModel.createLabelStatus.observe(viewLifecycleOwner) {
-            list.add(it)
-            val pos = list.indexOf(it)
-            adapter.notifyItemInserted(pos)
+            if (it.labelId == "") {
+                Toast.makeText(
+                    requireContext(),
+                    "Check your internet connection",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                list.add(it)
+                val pos = list.indexOf(it)
+                adapter.notifyItemInserted(pos)
+            }
         }
 
         labelViewModel.readLabelsFromDatabaseStatus.observe(viewLifecycleOwner) {
@@ -96,13 +104,12 @@ class CreateLabelFragment : Fragment() {
         }
         labelViewModel.updateLabelStatus.observe(viewLifecycleOwner) {
             list.forEachIndexed { index, label ->
-                if(it.labelId == label.labelId){
+                if (it.labelId == label.labelId) {
                     label.labelName = it.labelName
                     adapter.notifyItemChanged(index)
                 }
             }
         }
-
         readLabels()
         return view
     }
@@ -123,9 +130,7 @@ class CreateLabelFragment : Fragment() {
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
-
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
-
         toolbar.setNavigationOnClickListener {
             sharedViewModel.setGotoHomePageStatus(true)
         }
@@ -140,8 +145,8 @@ class CreateLabelFragment : Fragment() {
     }
 
     fun Context.hideKeyboard(view: View) {
-        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val inputMethodManager =
+            getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
     }
-
 }

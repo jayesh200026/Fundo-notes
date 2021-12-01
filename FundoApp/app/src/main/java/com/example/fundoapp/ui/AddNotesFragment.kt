@@ -93,6 +93,7 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
         if (updateStatus) {
             remainder.isVisible = true
             deleteBtn.isVisible = true
+            addLabelBtn.isVisible = true
             updateNote()
         }
     }
@@ -121,10 +122,13 @@ class AddNotesFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDa
             archive.setImageResource(R.drawable.ic_baseline_archive_24)
             archive.isVisible = true
         }
+        if(SharedPref.get(Constants.IS_NEWNOTE) == "true"){
+            archive.isVisible = false
+        }
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
             SharedPref.setUpdateStatus("updateStatus", false)
-            //activity?.onBackPressed()
+            SharedPref.addString(Constants.IS_NEWNOTE, "false")
             sharedViewModel.setGotoHomePageStatus(true)
         }
     }

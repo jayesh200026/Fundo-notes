@@ -45,8 +45,8 @@ class AddLabelViewModel : ViewModel() {
     fun readNoteLabel(context: Context) {
         viewModelScope.launch {
             val dbService = DBService(MainActivity.roomDBClass, context)
-            val status=dbService.readNotesLabel()
-            _readNotesLabelsFromDatabaseStatus.value=status
+            val status = dbService.readNotesLabel()
+            _readNotesLabelsFromDatabaseStatus.value = status
         }
 
     }

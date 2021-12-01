@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit
 import com.google.firebase.messaging.ktx.messaging
 import com.google.android.gms.tasks.OnCompleteListener
 
-
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     companion object {
         lateinit var roomDBClass: RoomDatabase
@@ -58,15 +57,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         navMenu = findViewById(R.id.myNavMenu)
         roomDBClass = Room.databaseBuilder(applicationContext, RoomDatabase::class.java, "myDB")
             .fallbackToDestructiveMigration().build()
-
         setSupportActionBar(toolbar)
-
         val toggle =
             ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open, R.string.close)
         toggle.isDrawerIndicatorEnabled = true
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
-
         navMenu.setNavigationItemSelectedListener(this)
         SharedPref.initSharedPref(this)
         sharedViewModel = ViewModelProvider(
@@ -129,11 +125,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         gotoAddNotesPage()
     }
 
-
     private fun readNotes() {
         sharedViewModel.readNotes(this)
     }
-
 
     private fun checkIfLoggedIn(): Boolean {
         if (Authentication.getCurrentUser() != null) {
@@ -148,13 +142,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 gotoHomePage()
             }
         })
-
         sharedViewModel.gotoLoginPageStatus.observe(this@MainActivity, {
             if (it) {
                 gotoLoginPage()
             }
         })
-
         sharedViewModel.gotoRegistrationPageStatus.observe(this@MainActivity,
             {
                 if (it) {
@@ -215,8 +207,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         sharedViewModel.readNotesStatus.observe(this, {
             scheduleNotification(it)
         })
-
-
     }
 
     @SuppressLint("RestrictedApi")
@@ -421,7 +411,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
             })
         }
-
     }
 
     fun getFirebaseMessagingToken() {
@@ -433,6 +422,5 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val token = task.result
             Log.d("firebasemessaging", token.toString())
         })
-
     }
 }

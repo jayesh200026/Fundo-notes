@@ -97,10 +97,12 @@ class RemainderFragment : Fragment() {
             for (i in 0 until it.size) {
                 if (it[i].remainder > currentTime) {
                     noteList.add(it[i])
+                    tempList.add(it[i])
+                    adapter.notifyItemInserted(tempList.size - 1)
+                    progressBar.isVisible = false
+                    gridrecyclerView.isVisible = true
                 }
             }
-            tempList.addAll(noteList)
-            gridrecyclerView.adapter?.notifyDataSetChanged()
             progressBar.isVisible = false
         }
         remainderViewModel.removeRemainderStatus.observe(viewLifecycleOwner) {

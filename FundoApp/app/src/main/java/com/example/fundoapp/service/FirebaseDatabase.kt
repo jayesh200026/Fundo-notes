@@ -275,7 +275,11 @@ class FirebaseDatabase {
                                 }
                             cont.resumeWith(Result.success(list))
                             }
+                            else{
+                                cont.resumeWith(Result.success(list))
+                            }
                         }
+
                 }
             }
         }
@@ -300,6 +304,22 @@ class FirebaseDatabase {
                 }
             }
 
+        }
+        suspend fun removeLabelFromNote(key: String):Boolean{
+            return suspendCoroutine {cont ->
+                val uid = Authentication.getCurrentUid()
+                if(uid != null){
+                    FirebaseDatabase.getInstance().getReference(Constants.NOTE_LABEL_TABLE)
+                        .child(uid)
+                        .child(key)
+                        .removeValue()
+                        .addOnCompleteListener {
+                            if(it.isSuccessful){
+                                cont.resumeWith(Result.success(true))
+                            }
+                        }
+                }
+            }
         }
 
         suspend fun readLabels(): MutableList<Label> {
@@ -413,5 +433,7 @@ class FirebaseDatabase {
                 }
             }
         }
+
+
     }
 }

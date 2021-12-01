@@ -11,11 +11,11 @@ import com.example.fundoapp.roomdb.entity.LabelEntity
 import com.example.fundoapp.service.model.Label
 
 class LabelToNoteAdapter(
-    var labels: List<Label>, var list:List<String>
+    var labels: List<Label>, var list: List<String>
 ) : RecyclerView.Adapter<LabelToNoteAdapter.LabelViewHolder>() {
     inner class LabelViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
-    var selectedLabels= mutableListOf<Label>()
+    var selectedLabels = mutableListOf<Label>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LabelViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.rv_label, parent, false)
@@ -25,21 +25,20 @@ class LabelToNoteAdapter(
     override fun onBindViewHolder(holder: LabelViewHolder, position: Int) {
         val label = holder.itemView.findViewById<TextView>(R.id.rvlabelText)
         val checkBox = holder.itemView.findViewById<CheckBox>(R.id.labelCB)
-
         checkBox.setOnClickListener {
-            if(checkBox.isChecked){
+            if (checkBox.isChecked && (labels[position] !in selectedLabels)) {
                 selectedLabels.add(labels[position])
-            }
-            else{
+            } else {
                 selectedLabels.remove(labels[position])
             }
         }
 
-        if(labels[position].labelId in list){
-            checkBox.isChecked=true
-        }
         holder.itemView.apply {
             label.text = labels[position].labelName
+            if (labels[position].labelId in list) {
+                checkBox.isChecked = true
+                selectedLabels.add(labels[position])
+            }
         }
     }
 
@@ -47,7 +46,7 @@ class LabelToNoteAdapter(
         return labels.size
     }
 
-    fun getSelectedList():MutableList<Label>{
+    fun getSelectedList(): MutableList<Label> {
         return selectedLabels
     }
 }

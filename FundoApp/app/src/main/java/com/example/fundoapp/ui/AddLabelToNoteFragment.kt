@@ -32,6 +32,8 @@ class AddLabelToNoteFragment : Fragment() {
     lateinit var searchBar: TextView
     lateinit var searchview: SearchView
     lateinit var deleteBtn: ImageView
+    lateinit var remainder: ImageView
+    lateinit var archive: ImageView
     lateinit var labelRV: RecyclerView
     lateinit var labelToNoteAdapter: LabelToNoteAdapter
     private lateinit var sharedViewModel: SharedViewModel
@@ -50,8 +52,10 @@ class AddLabelToNoteFragment : Fragment() {
         labelToNoteAdapter = LabelToNoteAdapter(labelsList, selectedLabels)
         labelRV.layoutManager = LinearLayoutManager(requireContext())
         labelRV.adapter = labelToNoteAdapter
-        addLabelViewModel = ViewModelProvider(this,
-            AddLabelViewModelFactory())[AddLabelViewModel::class.java]
+        addLabelViewModel = ViewModelProvider(
+            this,
+            AddLabelViewModelFactory()
+        )[AddLabelViewModel::class.java]
         sharedViewModel = ViewModelProvider(
             requireActivity(),
             SharedViewModelFactory()
@@ -77,7 +81,14 @@ class AddLabelToNoteFragment : Fragment() {
             for (i in 0 until it.size) {
                 if (it[i].noteID == key!!) {
                     selectedLabels.add(it[i].labelId)
+                    labelToNoteAdapter.notifyDataSetChanged()
                 }
+            }
+        }
+        addLabelViewModel.addLabelsToNotesStatus.observe(viewLifecycleOwner) {
+            if (it) {
+                SharedPref.setUpdateStatus("updateStatus", false)
+                sharedViewModel.setGotoHomePageStatus(true)
             }
         }
         return view
@@ -98,11 +109,15 @@ class AddLabelToNoteFragment : Fragment() {
         searchview = requireActivity().findViewById(R.id.searchView)
         deleteBtn = requireActivity().findViewById(R.id.deleteButton)
         toolbar = requireActivity().findViewById(R.id.myToolbar)
+        remainder = requireActivity().findViewById(R.id.remainder)
+        archive = requireActivity().findViewById(R.id.archiveImage)
         userIcon.isVisible = false
         gridorLinear.isVisible = false
         searchBar.isVisible = false
         searchview.isVisible = false
         deleteBtn.isVisible = false
+        remainder.isVisible = false
+        archive.isVisible = false
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         toolbar.setNavigationOnClickListener {
             SharedPref.setUpdateStatus("updateStatus", false)

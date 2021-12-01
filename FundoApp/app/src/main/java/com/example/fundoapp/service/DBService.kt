@@ -252,7 +252,10 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
         return withContext(Dispatchers.IO) {
             var deleteStatus = 0
             if (networkStatus) {
-                FirebaseDatabase.deleteNote(key)
+                val fbStatus = FirebaseDatabase.deleteNote(key)
+                if (fbStatus) {
+                    FirebaseDatabase.deleteNoteLabel(key)
+                }
                 deleteStatus = roomDB.noteDao.deleteForever(key, true, time)
             } else {
                 deleteStatus = roomDB.noteDao.deleteForever(key, true, time)
@@ -304,7 +307,7 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     suspend fun deleteLabel(labelEntity: Label): Boolean {
         return withContext(Dispatchers.IO) {
             val deletelabelStatus = FirebaseDatabase.deleteLabel(labelEntity.labelId)
-            if(deletelabelStatus){
+            if (deletelabelStatus) {
                 FirebaseDatabase.deleteNoteLabel(labelEntity.labelId)
             }
             deletelabelStatus
@@ -322,21 +325,27 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     suspend fun addLabelsToNotes(list: MutableList<Label>): Boolean {
         return withContext(Dispatchers.IO) {
             val key = SharedPref.get("key")
+            val labelIds = mutableListOf<String>()
+            for (i in list) {
+                labelIds.add(i.labelId)
+            }
             val time = System.currentTimeMillis().toString()
             if (key != null) {
-//                    val labelList = FirebaseDatabase.getLabelsOfNote(key)
-//                for(label in labelList){
-//                    if(! (label in list)){
-//
-//                    }
-//                }
+                val labelList = FirebaseDatabase.getLabelsOfNote(key)
+                for (label in labelList) {
+                    if (label !in labelIds) {
+                        Log.d("notelabel", "not found $label")
+                        FirebaseDatabase.removeLabelFromNote(key + label)
+                    }
+                }
                 for (i in 0 until list.size) {
                     val note = NoteLabels(key, list[i].labelId)
-                    val fbStatus = FirebaseDatabase.addLabelsToNote(note, time)
-                    fbStatus
+                    FirebaseDatabase.addLabelsToNote(note, time)
                 }
+                true
+            } else {
+                false
             }
-            false
         }
     }
 

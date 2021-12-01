@@ -113,7 +113,7 @@ class ArchivedNotesFragment : Fragment() {
         SharedPref.addString("title", noteList[position].title)
         SharedPref.addString("note", noteList[position].note)
         SharedPref.addString("key", noteList[position].key)
-        SharedPref.addString(Constants.IS_ARCHIVED, "true")
+        SharedPref.addString(Constants.IS_NEWNOTE, "true")
         SharedPref.addBoolean(Constants.COLUMN_ARCHIVED, noteList[position].archived)
         SharedPref.addBoolean(Constants.COLUMN_DELETED, noteList[position].deleted)
     }
@@ -126,10 +126,12 @@ class ArchivedNotesFragment : Fragment() {
             for (i in 0 until it.size) {
                 if (it[i].archived) {
                     noteList.add(it[i])
+                    tempList.add(it[i])
+                    adapter.notifyItemInserted(tempList.size - 1)
+                    progressBar.isVisible = false
+                    gridrecyclerView.isVisible = true
                 }
             }
-            tempList.addAll(noteList)
-            gridrecyclerView.adapter?.notifyDataSetChanged()
             progressBar.isVisible = false
         }
     }

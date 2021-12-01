@@ -1,7 +1,7 @@
 package com.example.fundoapp.util
 
 object Constants {
-    const val IS_ARCHIVED="false"
+    const val IS_NEWNOTE="false"
     const val USER_TABLE="users"
     const val NOTES_TABLE="notes"
     const val COLUMN_FULLNAME="fullName"

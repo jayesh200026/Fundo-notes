@@ -231,7 +231,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         SharedPref.addString("title", noteList[position].title)
         SharedPref.addString("note", noteList[position].note)
         SharedPref.addString("key", noteList[position].key)
-        SharedPref.addString(Constants.IS_ARCHIVED, "false")
+        SharedPref.addString(Constants.IS_NEWNOTE, "false")
         SharedPref.addString(Constants.COLUMN_MODIFIEDTIME, noteList[position].mTime)
         SharedPref.addBoolean(Constants.COLUMN_DELETED, noteList[position].deleted)
         SharedPref.addBoolean(Constants.COLUMN_ARCHIVED, noteList[position].archived)
@@ -281,6 +281,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
             R.string.open,
             R.string.close
         )
+        navMenu.setCheckedItem(R.id.menuNotes)
         val drawerLayout = requireActivity().findViewById<DrawerLayout>(R.id.drawerLayout)
         drawerLayout.addDrawerListener(toggle)
         toggle.isDrawerIndicatorEnabled = true
@@ -370,7 +371,7 @@ class HomeFragment : Fragment(), SearchView.OnCloseListener {
         }
 
         addNoteFAB.setOnClickListener {
-            SharedPref.addString(Constants.IS_ARCHIVED, "")
+            SharedPref.addString(Constants.IS_NEWNOTE, "true")
             sharedViewModel.setGotoAddNotesPage(true)
         }
     }

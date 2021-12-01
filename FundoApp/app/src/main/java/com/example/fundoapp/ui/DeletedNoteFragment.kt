@@ -93,10 +93,12 @@ class DeletedNoteFragment : Fragment() {
             for (i in 0..it.size - 1) {
                 if (it[i].deleted) {
                     noteList.add(it[i])
+                    tempList.add(it[i])
+                    adapter.notifyItemInserted(tempList.size - 1)
+                    progressBar.isVisible = false
+                    gridrecyclerView.isVisible = true
                 }
             }
-            tempList.addAll(noteList)
-            gridrecyclerView.adapter?.notifyDataSetChanged()
             progressBar.isVisible = false
         }
 

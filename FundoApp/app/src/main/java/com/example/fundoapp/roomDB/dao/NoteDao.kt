@@ -30,7 +30,7 @@ interface NoteDao {
     fun deleteForever(key: String,status:Boolean,time:String): Int
 
     @Query("Delete from notes where fid=:key")
-    fun deletePermanently(key: String)
+    fun deletePermanently(key: String):Int
 
     @Query("Delete from Notes")
     fun clearTable()

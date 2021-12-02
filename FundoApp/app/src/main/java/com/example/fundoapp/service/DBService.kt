@@ -255,8 +255,9 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
                 val fbStatus = FirebaseDatabase.deleteNote(key)
                 if (fbStatus) {
                     FirebaseDatabase.deleteNoteLabel(key)
+                    deleteStatus = roomDB.noteDao.deletePermanently(key)
                 }
-                deleteStatus = roomDB.noteDao.deleteForever(key, true, time)
+
             } else {
                 deleteStatus = roomDB.noteDao.deleteForever(key, true, time)
             }
@@ -390,9 +391,6 @@ class DBService(val roomDB: RoomDatabase, val context: Context) {
     suspend fun fillToRoomDB() {
         return withContext(Dispatchers.IO) {
             Log.d("Filling", "going to fill")
-            //fillNotes()
-            //fillLabel()
-            //fillNoteLabel()
         }
     }
 
